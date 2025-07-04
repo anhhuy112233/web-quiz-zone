@@ -5,6 +5,7 @@ import { getAuthHeaders } from '../../utils/api.js';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import Button from '../../components/common/Button';
+import Modal from '../../components/common/Modal';
 
 const ExamStart = () => {
   const { id } = useParams();
@@ -19,6 +20,9 @@ const ExamStart = () => {
   const [submitting, setSubmitting] = useState(false);
   const [examStarted, setExamStarted] = useState(false);
   const [startTime, setStartTime] = useState(null);
+  const [showExitWarning, setShowExitWarning] = useState(false);
+  const [exitAction, setExitAction] = useState(null);
+  const [showRestoreMessage, setShowRestoreMessage] = useState(false);
 
   useEffect(() => {
     fetchExam();
@@ -34,6 +38,37 @@ const ExamStart = () => {
       }
     };
   }, [id]);
+
+  // Lưu trạng thái bài thi vào localStorage để phục hồi khi refresh
+  useEffect(() => {
+    if (examStarted && exam && answers.length > 0) {
+      const examState = {
+        examId: id,
+        answers: answers,
+        current: current,
+        startTime: startTime,
+        timeLeft: timeLeft
+      };
+      localStorage.setItem('examState', JSON.stringify(examState));
+    }
+  }, [examStarted, exam, answers, current, startTime, timeLeft, id]);
+
+  // Xóa trạng thái bài thi khi hoàn thành
+  useEffect(() => {
+    if (exitAction === 'submit' || exitAction === 'exit') {
+      localStorage.removeItem('examState');
+    }
+  }, [exitAction]);
+
+  // Tự động ẩn thông báo phục hồi sau 5 giây
+  useEffect(() => {
+    if (showRestoreMessage) {
+      const timer = setTimeout(() => {
+        setShowRestoreMessage(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showRestoreMessage]);
 
   const setupSocketConnection = () => {
     // Kết nối Socket.IO
@@ -62,7 +97,37 @@ const ExamStart = () => {
       setLoading(true);
       console.log('Starting exam for ID:', id);
       
-      // Bắt đầu làm bài (gọi API start)
+      // Kiểm tra xem có trạng thái bài thi đã lưu không
+      const savedState = localStorage.getItem('examState');
+      if (savedState) {
+        const examState = JSON.parse(savedState);
+        if (examState.examId === id) {
+          // Phục hồi trạng thái bài thi
+          console.log('Restoring exam state from localStorage');
+          setAnswers(examState.answers);
+          setCurrent(examState.current);
+          setStartTime(new Date(examState.startTime));
+          setTimeLeft(examState.timeLeft);
+          setExamStarted(true);
+          setShowRestoreMessage(true);
+          
+          // Lấy thông tin bài thi
+          const examResponse = await fetch(`http://localhost:5000/api/exams/${id}`, {
+            headers: getAuthHeaders()
+          });
+          const examData = await examResponse.json();
+          if (examResponse.ok) {
+            setExam(examData.data.exam);
+            // Tham gia lại phòng thi
+            socketClient.joinExam(id);
+            socketClient.examStarted(id, new Date(examState.startTime));
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      
+      // Bắt đầu làm bài mới (gọi API start)
       const response = await fetch(`http://localhost:5000/api/exams/${id}/start`, {
         method: 'POST',
         headers: getAuthHeaders()
@@ -104,7 +169,10 @@ const ExamStart = () => {
   // Đếm ngược thời gian
   useEffect(() => {
     if (timeLeft <= 0) {
-      if (exam && answers.length) handleSubmit();
+      if (exam && answers.length) {
+        localStorage.removeItem('examState');
+        handleSubmit();
+      }
       return;
     }
     timerRef.current = setTimeout(() => {
@@ -170,7 +238,8 @@ const ExamStart = () => {
         throw new Error(data.message || 'Nộp bài thất bại');
       }
       
-      // Rời phòng thi
+      // Rời phòng thi và xóa trạng thái
+      localStorage.removeItem('examState');
       socketClient.leaveExam(id);
       navigate(`/student/exams/${id}/result`);
     } catch (err) {
@@ -180,7 +249,29 @@ const ExamStart = () => {
     }
   };
 
-  // Phát hiện hoạt động đáng ngờ
+  // Hàm xử lý thoát trang và nộp bài
+  const handleExitAndSubmit = async () => {
+    setShowExitWarning(false);
+    setExitAction('submit');
+    await handleSubmit();
+  };
+
+  // Hàm xử lý thoát trang không nộp bài
+  const handleExitWithoutSubmit = () => {
+    setShowExitWarning(false);
+    setExitAction('exit');
+    localStorage.removeItem('examState');
+    socketClient.leaveExam(id);
+    navigate('/student/exams');
+  };
+
+  // Hàm xử lý ở lại tiếp tục thi
+  const handleStayAndContinue = () => {
+    setShowExitWarning(false);
+    setExitAction(null);
+  };
+
+  // Phát hiện hoạt động đáng ngờ và xử lý thoát trang
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && examStarted) {
@@ -188,20 +279,44 @@ const ExamStart = () => {
       }
     };
 
-    const handleBeforeUnload = () => {
-      if (examStarted) {
-        socketClient.suspiciousActivity(id, 'Page refresh/close', 'Student tried to refresh or close the page');
+    const handleBeforeUnload = (e) => {
+      if (examStarted && !showExitWarning) {
+        // Hiển thị cảnh báo mặc định của trình duyệt
+        e.preventDefault();
+        e.returnValue = 'Bạn có chắc chắn muốn thoát khỏi bài thi?';
+        return 'Bạn có chắc chắn muốn thoát khỏi bài thi?';
+      }
+    };
+
+    const handlePopState = (e) => {
+      if (examStarted && !showExitWarning) {
+        e.preventDefault();
+        setShowExitWarning(true);
+        // Push lại state để ngăn chặn navigation
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      // Ngăn chặn F5 và Ctrl+R
+      if (examStarted && (e.key === 'F5' || (e.ctrlKey && e.key === 'r'))) {
+        e.preventDefault();
+        setShowExitWarning(true);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [examStarted, id]);
+  }, [examStarted, id, showExitWarning]);
 
   if (loading) return <Loading />;
   if (error) return <Alert type="error" message={error} onClose={() => setError('')} />;
@@ -220,6 +335,36 @@ const ExamStart = () => {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
+      {/* Thông báo phục hồi trạng thái */}
+      {showRestoreMessage && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <span className="text-blue-400 text-xl">🔄</span>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">
+                Trạng thái bài thi đã được phục hồi
+              </h3>
+              <p className="text-sm text-blue-700 mt-1">
+                Các câu trả lời và thời gian làm bài của bạn đã được khôi phục.
+              </p>
+            </div>
+            <div className="ml-auto pl-3">
+              <button
+                onClick={() => setShowRestoreMessage(false)}
+                className="text-blue-400 hover:text-blue-600"
+              >
+                <span className="sr-only">Đóng</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header với thông tin bài thi */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <div className="flex items-center justify-between">
@@ -324,6 +469,56 @@ const ExamStart = () => {
           {submitting ? 'Đang nộp bài...' : 'Nộp bài'}
         </Button>
       </div>
+
+      {/* Modal cảnh báo thoát trang */}
+      <Modal
+        isOpen={showExitWarning}
+        onClose={handleStayAndContinue}
+        title="⚠️ Cảnh báo thoát trang"
+        size="md"
+        showCloseButton={false}
+      >
+        <div className="text-center">
+          <div className="mb-4">
+            <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Bạn đang cố gắng thoát khỏi bài thi
+            </h3>
+            <p className="text-gray-600">
+              Nếu bạn thoát bây giờ, bài thi sẽ được nộp với những câu trả lời hiện tại.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              variant="secondary"
+              onClick={handleStayAndContinue}
+              className="flex-1"
+            >
+              🔄 Ở lại tiếp tục thi
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleExitAndSubmit}
+              className="flex-1"
+            >
+              📝 Thoát và nộp bài
+            </Button>
+          </div>
+          
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              onClick={handleExitWithoutSubmit}
+              className="text-sm"
+            >
+              🚪 Thoát không nộp bài
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
