@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
 import authRoutes from './routes/auth.js';
-import userRoutes from './routes/users.js';
+import userRoutes from './routes/userRoutes.js';
 import examRoutes from './routes/exams.js';
 import resultRoutes from './routes/results.js';
 import SocketManager from './socket.js';

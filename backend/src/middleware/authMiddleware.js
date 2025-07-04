@@ -32,7 +32,6 @@ export const protect = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error('Auth error:', error); // Debug log
     return res.status(401).json({
       status: 'error',
       message: 'Token không hợp lệ hoặc đã hết hạn.'
@@ -42,9 +41,6 @@ export const protect = async (req, res, next) => {
 
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
-    console.log('User role:', req.user.role); // Debug log
-    console.log('Allowed roles:', roles); // Debug log
-    
     if (!req.user || !req.user.role) {
       return res.status(403).json({
         status: 'error',

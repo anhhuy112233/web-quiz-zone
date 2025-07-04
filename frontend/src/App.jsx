@@ -17,6 +17,7 @@ import ExamStart from './pages/student/ExamStart';
 import ExamResult from './pages/student/ExamResult';
 import StudentResults from './pages/student/StudentResults';
 import ExamDetailResult from './pages/student/ExamDetailResult';
+import Profile from './pages/student/Profile';
 import ExamResults from './pages/teacher/ExamResults';
 import ExamDetailResults from './pages/teacher/ExamDetailResults';
 import Students from './pages/teacher/Students';
@@ -221,6 +222,14 @@ function App() {
           <ProtectedRoute role="student">
             <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
               <StudentResults />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/student/profile" element={
+          <ProtectedRoute role="student">
+            <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
+              <Profile />
             </Layout>
           </ProtectedRoute>
         } />

@@ -167,11 +167,11 @@ export const clearAllSessions = () => {
 
 // Get current session info for debugging
 export const getCurrentSessionInfo = () => {
-  const currentSession = getCurrentSession();
-  const allSessions = getAllSessions();
+  const currentSession = sessionManager.getCurrentSession();
+  const allSessions = sessionManager.getAllSessions();
   return {
     currentSession,
     allSessions,
-    currentToken: getCurrentToken()
+    currentToken: sessionManager.getCurrentToken()
   };
 }; 
