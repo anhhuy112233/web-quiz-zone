@@ -99,7 +99,7 @@ const ExamDetailResults = () => {
                 >
                   <div className="font-medium">{result.user.name}</div>
                   <div className="text-sm text-gray-600">
-                    Điểm: {result.score}/{result.totalQuestions}
+                    Điểm: {result.correctAnswers}/{result.totalQuestions} ({result.score}%)
                   </div>
                   <div className="text-sm text-gray-500">
                     {new Date(result.createdAt).toLocaleString('vi-VN')}
@@ -119,7 +119,7 @@ const ExamDetailResults = () => {
                   <div>
                     <p className="text-sm text-gray-600">Điểm số</p>
                     <p className="text-xl font-bold">
-                      {selectedStudent.score}/{selectedStudent.totalQuestions}
+                      {selectedStudent.correctAnswers}/{selectedStudent.totalQuestions} ({selectedStudent.score}%)
                     </p>
                   </div>
                   <div>

@@ -139,15 +139,17 @@ const ExamStart = () => {
     
     try {
       // Tính điểm
-      let score = 0;
+      let correctAnswers = 0;
       const totalQuestions = exam.questions.length;
       const timeTaken = Math.floor((new Date() - startTime) / 1000);
       
       answers.forEach((answer, index) => {
         if (answer === exam.questions[index].correctAnswer) {
-          score++;
+          correctAnswers++;
         }
       });
+
+      const score = Math.round((correctAnswers / totalQuestions) * 100);
 
       // Báo cáo hoàn thành bài thi
       socketClient.examCompleted(id, score, totalQuestions, timeTaken);

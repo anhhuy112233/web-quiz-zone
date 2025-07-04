@@ -297,7 +297,7 @@ export const submitExam = async (req, res) => {
     // Update result
     result.answers = processedAnswers;
     result.correctAnswers = correctAnswers;
-    result.score = correctAnswers;
+    result.score = Math.round((correctAnswers / exam.totalQuestions) * 100);
     result.status = 'completed';
     result.endTime = new Date();
     await result.save();

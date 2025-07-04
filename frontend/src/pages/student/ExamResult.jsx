@@ -132,7 +132,7 @@ const ExamResult = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="text-sm text-gray-600">Điểm số</p>
-            <p className="text-2xl font-bold text-blue-600">{result.score}/{result.totalQuestions}</p>
+            <p className="text-2xl font-bold text-blue-600">{result.correctAnswers}/{result.totalQuestions} ({result.score}%)</p>
           </div>
           <div className="bg-green-50 p-4 rounded-lg">
             <p className="text-sm text-gray-600">Thời gian làm bài</p>

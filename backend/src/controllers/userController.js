@@ -29,7 +29,7 @@ export const getUsers = async (req, res) => {
           const results = await Result.find({ user: user._id, status: 'completed' });
           const completedExams = results.length;
           const averageScore = completedExams > 0
-            ? results.reduce((acc, curr) => acc + (curr.correctAnswers / curr.totalQuestions) * 100, 0) / completedExams
+            ? results.reduce((acc, curr) => acc + curr.score, 0) / completedExams
             : 0;
 
           return {

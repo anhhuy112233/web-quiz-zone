@@ -117,7 +117,7 @@ export const getExamResults = async (req, res) => {
     const totalStudents = processedResults.length;
     const completedResults = processedResults.filter(r => r.status === 'completed');
     const averageScore = completedResults.length > 0
-      ? completedResults.reduce((acc, curr) => acc + (curr.correctAnswers / curr.totalQuestions) * 100, 0) / completedResults.length
+      ? completedResults.reduce((acc, curr) => acc + curr.score, 0) / completedResults.length
       : 0;
 
     res.status(200).json({
