@@ -19,6 +19,11 @@ import StudentResults from './pages/student/StudentResults';
 import ExamDetailResult from './pages/student/ExamDetailResult';
 import Profile from './pages/student/Profile';
 import TeacherProfile from './pages/teacher/Profile';
+import AdminProfile from './pages/admin/Profile';
+import AdminUsers from './pages/admin/Users';
+import AdminExams from './pages/admin/Exams';
+import AdminSettings from './pages/admin/Settings';
+import AdminReports from './pages/admin/Reports';
 import ExamResults from './pages/teacher/ExamResults';
 import ExamDetailResults from './pages/teacher/ExamDetailResults';
 import Students from './pages/teacher/Students';
@@ -273,6 +278,51 @@ function App() {
           <ProtectedRoute role="teacher">
             <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
               <TeacherProfile />
+            </Layout>
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Profile Route */}
+        <Route path="/admin/profile" element={
+          <ProtectedRoute role="admin">
+            <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
+              <AdminProfile />
+            </Layout>
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Users Route */}
+        <Route path="/admin/users" element={
+          <ProtectedRoute role="admin">
+            <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
+              <AdminUsers />
+            </Layout>
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Exams Route */}
+        <Route path="/admin/exams" element={
+          <ProtectedRoute role="admin">
+            <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
+              <AdminExams />
+            </Layout>
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Settings Route */}
+        <Route path="/admin/settings" element={
+          <ProtectedRoute role="admin">
+            <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
+              <AdminSettings />
+            </Layout>
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Reports Route */}
+        <Route path="/admin/reports" element={
+          <ProtectedRoute role="admin">
+            <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
+              <AdminReports />
             </Layout>
           </ProtectedRoute>
         } />

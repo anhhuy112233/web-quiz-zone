@@ -55,7 +55,7 @@ const Header = ({ user, onLogout, onSessionChange }) => {
                       Quản lý đề thi
                     </Link>
                     <Link
-                      to="/teacher/teacher/results"
+                      to="/teacher/results"
                       className="text-gray-700 hover:text-blue-600 transition-colors"
                     >
                       Xem kết quả
@@ -65,13 +65,20 @@ const Header = ({ user, onLogout, onSessionChange }) => {
                 {user.role === "admin" && (
                   <>
                     <Link
-                      to="/users"
+                      to="/admin/users"
                       className="text-gray-700 hover:text-blue-600 transition-colors"
                     >
                       Quản lý người dùng
                     </Link>
+
                     <Link
-                      to="/settings"
+                      to="/admin/reports"
+                      className="text-gray-700 hover:text-blue-600 transition-colors"
+                    >
+                      Báo cáo
+                    </Link>
+                    <Link
+                      to="/admin/settings"
                       className="text-gray-700 hover:text-blue-600 transition-colors"
                     >
                       Cài đặt
@@ -82,12 +89,15 @@ const Header = ({ user, onLogout, onSessionChange }) => {
                 {/* Session Switcher */}
                 <SessionSwitcher onSessionChange={onSessionChange} />
 
-                <Link
-                  to="/"
-                  className="text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  {user.name}
-                </Link>
+                <div className="flex items-center space-x-4">
+                  <Link
+                    to={`/${user.role}/profile`}
+                    className="text-gray-700 hover:text-blue-600 transition-colors"
+                  >
+                    👤 Thông tin cá nhân
+                  </Link>
+                  <span className="text-gray-700">{user.name}</span>
+                </div>
                 <button
                   onClick={handleLogout}
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors"

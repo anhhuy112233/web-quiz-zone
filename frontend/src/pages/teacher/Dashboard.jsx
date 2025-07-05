@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Card from '../../components/common/Card';
-import Loading from '../../components/common/Loading';
-import Alert from '../../components/common/Alert';
-import { getAuthHeaders } from '../../utils/api';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import Card from "../../components/common/Card";
+import Loading from "../../components/common/Loading";
+import Alert from "../../components/common/Alert";
+import { getAuthHeaders } from "../../utils/api";
 
 const TeacherDashboard = ({ user }) => {
   const [stats, setStats] = useState({
     totalExams: 0,
     activeExams: 0,
     totalStudents: 0,
-    totalResults: 0
+    totalResults: 0,
   });
 
   const [recentExams, setRecentExams] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchDashboardData();
@@ -24,34 +24,39 @@ const TeacherDashboard = ({ user }) => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch exams
-      const examsResponse = await fetch('http://localhost:5000/api/exams', {
-        headers: getAuthHeaders()
+      const examsResponse = await fetch("http://localhost:5000/api/exams", {
+        headers: getAuthHeaders(),
       });
-      
+
       const examsData = await examsResponse.json();
-      const exams = examsResponse.ok ? (examsData.data.exams || []) : [];
-      
+      const exams = examsResponse.ok ? examsData.data.exams || [] : [];
+
       // Fetch results
-      const resultsResponse = await fetch('http://localhost:5000/api/results', {
-        headers: getAuthHeaders()
+      const resultsResponse = await fetch("http://localhost:5000/api/results", {
+        headers: getAuthHeaders(),
       });
-      
+
       const resultsData = await resultsResponse.json();
-      const results = resultsResponse.ok ? (resultsData.data.results || []) : [];
-      
+      const results = resultsResponse.ok ? resultsData.data.results || [] : [];
+
       // Fetch students
-      const studentsResponse = await fetch('http://localhost:5000/api/users?role=student', {
-        headers: getAuthHeaders()
-      });
-      
+      const studentsResponse = await fetch(
+        "http://localhost:5000/api/users?role=student",
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
       const studentsData = await studentsResponse.json();
-      const students = studentsResponse.ok ? (studentsData.data.users || []) : [];
+      const students = studentsResponse.ok ? studentsData.data.users || [] : [];
 
       // Calculate stats
       const totalExams = exams.length;
-      const activeExams = exams.filter(exam => exam.status === 'scheduled').length;
+      const activeExams = exams.filter(
+        (exam) => exam.status === "scheduled"
+      ).length;
       const totalResults = results.length;
       const totalStudents = students.length;
 
@@ -59,22 +64,22 @@ const TeacherDashboard = ({ user }) => {
         totalExams,
         activeExams,
         totalResults,
-        totalStudents
+        totalStudents,
       });
 
       // Prepare recent exams data
-      const recentExams = exams.slice(0, 5).map(exam => ({
+      const recentExams = exams.slice(0, 5).map((exam) => ({
         id: exam._id,
         title: exam.title,
         status: exam.status,
-        startTime: new Date(exam.startTime).toLocaleDateString('vi-VN'),
-        participantCount: results.filter(result => result.exam === exam._id).length
+        startTime: new Date(exam.startTime).toLocaleDateString("vi-VN"),
+        participantCount: results.filter((result) => result.exam === exam._id)
+          .length,
       }));
 
       setRecentExams(recentExams);
-
     } catch (err) {
-      console.error('Fetch dashboard data error:', err);
+      console.error("Fetch dashboard data error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -83,27 +88,27 @@ const TeacherDashboard = ({ user }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'scheduled':
-        return 'bg-green-100 text-green-800';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
+      case "scheduled":
+        return "bg-green-100 text-green-800";
+      case "draft":
+        return "bg-gray-100 text-gray-800";
+      case "completed":
+        return "bg-blue-100 text-blue-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'scheduled':
-        return 'Đã lên lịch';
-      case 'draft':
-        return 'Bản nháp';
-      case 'completed':
-        return 'Đã kết thúc';
+      case "scheduled":
+        return "Đã lên lịch";
+      case "draft":
+        return "Bản nháp";
+      case "completed":
+        return "Đã kết thúc";
       default:
-        return 'Không xác định';
+        return "Không xác định";
     }
   };
 
@@ -134,7 +139,7 @@ const TeacherDashboard = ({ user }) => {
           <p className="mt-2 text-gray-600">
             Chào mừng {user?.name}, đây là tổng quan giảng dạy của bạn
           </p>
-      </div>
+        </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -147,7 +152,9 @@ const TeacherDashboard = ({ user }) => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Tổng đề thi</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.totalExams}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.totalExams}
+                </p>
               </div>
             </div>
           </Card>
@@ -160,10 +167,14 @@ const TeacherDashboard = ({ user }) => {
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Đang hoạt động</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.activeExams}</p>
+                <p className="text-sm font-medium text-gray-500">
+                  Đang hoạt động
+                </p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.activeExams}
+                </p>
               </div>
-      </div>
+            </div>
           </Card>
 
           <Card className="bg-white">
@@ -175,7 +186,9 @@ const TeacherDashboard = ({ user }) => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Học sinh</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.totalStudents}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.totalStudents}
+                </p>
               </div>
             </div>
           </Card>
@@ -189,7 +202,9 @@ const TeacherDashboard = ({ user }) => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Kết quả thi</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.totalResults}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.totalResults}
+                </p>
               </div>
             </div>
           </Card>
@@ -210,9 +225,7 @@ const TeacherDashboard = ({ user }) => {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     Tạo đề thi
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Tạo đề thi mới
-                  </p>
+                  <p className="text-sm text-gray-600">Tạo đề thi mới</p>
                 </div>
               </Card>
             </Link>
@@ -264,22 +277,6 @@ const TeacherDashboard = ({ user }) => {
                 </div>
               </Card>
             </Link>
-
-            <Link to="/teacher/profile" className="block group">
-              <Card className="bg-white hover:shadow-lg transition-shadow duration-200">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                    <span className="text-2xl text-white">👨‍🏫</span>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Thông tin cá nhân
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Xem và cập nhật thông tin
-                  </p>
-                </div>
-              </Card>
-            </Link>
           </div>
         </div>
 
@@ -292,11 +289,14 @@ const TeacherDashboard = ({ user }) => {
             {recentExams.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Chưa có đề thi nào</p>
-          </div>
-        ) : (
+              </div>
+            ) : (
               <div className="space-y-4">
                 {recentExams.map((exam) => (
-                  <div key={exam.id} className="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0">
+                  <div
+                    key={exam.id}
+                    className="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0"
+                  >
                     <div className="flex-1">
                       <h3 className="text-sm font-medium text-gray-900">
                         {exam.title}
@@ -313,10 +313,14 @@ const TeacherDashboard = ({ user }) => {
                       </div>
                     </div>
                     <div className="ml-4 flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(exam.status)}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                          exam.status
+                        )}`}
+                      >
                         {getStatusText(exam.status)}
                       </span>
-                      <Link 
+                      <Link
                         to={`/teacher/exams/${exam.id}/results`}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
@@ -326,12 +330,12 @@ const TeacherDashboard = ({ user }) => {
                   </div>
                 ))}
               </div>
-        )}
-      </Card>
+            )}
+          </Card>
         </div>
       </div>
     </div>
   );
 };
 
-export default TeacherDashboard; 
+export default TeacherDashboard;

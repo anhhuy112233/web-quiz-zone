@@ -7,7 +7,7 @@ export const getResults = async (req, res) => {
 
     // If user is student, only show their results
     if (req.user.role === 'student') {
-      query.user = req.user.id;
+      query.user = req.user._id || req.user.id;
     }
 
     // Filter by exam if provided
@@ -52,7 +52,7 @@ export const getResult = async (req, res) => {
     }
 
     // Check if user has permission to view this result
-    if (req.user.role === 'student' && result.user._id.toString() !== req.user.id) {
+    if (req.user.role === 'student' && result.user._id.toString() !== (req.user._id || req.user.id).toString()) {
       return res.status(403).json({
         status: 'error',
         message: 'Bạn không có quyền xem kết quả này.'
@@ -147,10 +147,10 @@ export const getExamResults = async (req, res) => {
 
 export const getUserResults = async (req, res) => {
   try {
-    const userId = req.params.userId || req.user.id;
+    const userId = req.params.userId || req.user._id || req.user.id;
 
     // Check if user has permission to view other user's results
-    if (userId !== req.user.id && req.user.role !== 'admin' && req.user.role !== 'teacher') {
+    if (userId !== (req.user._id || req.user.id) && req.user.role !== 'admin' && req.user.role !== 'teacher') {
       return res.status(403).json({
         status: 'error',
         message: 'Bạn không có quyền xem kết quả của người dùng này.'
@@ -198,7 +198,7 @@ export const deleteResult = async (req, res) => {
     }
 
     // Kiểm tra quyền xóa
-    if (req.user.role === 'student' && result.user.toString() !== req.user.id) {
+    if (req.user.role === 'student' && result.user.toString() !== (req.user._id || req.user.id).toString()) {
       return res.status(403).json({
         status: 'error',
         message: 'Bạn không có quyền xóa kết quả này.'

@@ -39,14 +39,24 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password')) {
+    console.log('Password not modified, skipping hash');
+    return next();
+  }
   
+  console.log('Hashing password for user:', this.email);
   this.password = await bcrypt.hash(this.password, 12);
+  console.log('Password hashed successfully');
   next();
 });
 
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
+  console.log('Comparing passwords:', {
+    candidatePassword: candidatePassword ? 'provided' : 'not provided',
+    hashedPassword: this.password ? 'exists' : 'missing',
+    passwordLength: this.password?.length
+  });
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

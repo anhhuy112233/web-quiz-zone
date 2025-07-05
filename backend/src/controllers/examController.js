@@ -7,7 +7,7 @@ export const createExam = async (req, res) => {
   try {
     const exam = await Exam.create({
       ...req.body,
-      createdBy: req.user.id
+      createdBy: req.user._id || req.user.id
     });
 
     res.status(201).json({
@@ -110,7 +110,7 @@ export const updateExam = async (req, res) => {
     }
 
     // Check if user is the creator or admin
-    if (exam.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (exam.createdBy.toString() !== (req.user._id || req.user.id).toString() && req.user.role !== 'admin') {
       return res.status(403).json({
         status: 'error',
         message: 'Bạn không có quyền cập nhật bài thi này.'
@@ -158,7 +158,7 @@ export const deleteExam = async (req, res) => {
     }
 
     // Check if user is the creator or admin
-    if (exam.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (exam.createdBy.toString() !== (req.user._id || req.user.id).toString() && req.user.role !== 'admin') {
       return res.status(403).json({
         status: 'error',
         message: 'Bạn không có quyền xóa bài thi này.'
@@ -225,14 +225,14 @@ export const startExam = async (req, res) => {
     // Xóa các result in_progress cũ trước khi tạo mới
     await Result.deleteMany({
       exam: exam._id,
-      user: req.user.id,
+      user: req.user._id || req.user.id,
       status: 'in_progress'
     });
 
     // Create new result
     const result = await Result.create({
       exam: exam._id,
-      user: req.user.id,
+      user: req.user._id || req.user.id,
       startTime: new Date(),
       endTime: new Date(Date.now() + exam.duration * 60000),
       duration: exam.duration,
@@ -270,7 +270,7 @@ export const submitExam = async (req, res) => {
     // Find the result (lấy lần làm bài mới nhất)
     const result = await Result.findOne({
       exam: exam._id,
-      user: req.user.id,
+      user: req.user._id || req.user.id,
       status: 'in_progress'
     }).sort({ createdAt: -1 });
 
@@ -304,7 +304,7 @@ export const submitExam = async (req, res) => {
     // Xóa các result in_progress còn lại (nếu có)
     await Result.deleteMany({
       exam: exam._id,
-      user: req.user.id,
+      user: req.user._id || req.user.id,
       status: 'in_progress',
       _id: { $ne: result._id }
     });

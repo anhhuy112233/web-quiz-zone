@@ -65,12 +65,22 @@ export const login = async (req, res) => {
 
     // Check if user exists && password is correct
     const user = await User.findOne({ email }).select('+password');
+    console.log('Login attempt:', {
+      email,
+      userFound: !!user,
+      userRole: user?.role,
+      hasPassword: !!user?.password
+    });
+    
     if (!user || !(await user.comparePassword(password))) {
+      console.log('Login failed: user not found or password incorrect');
       return res.status(401).json({
         status: 'error',
         message: 'Email hoặc mật khẩu không đúng.'
       });
     }
+    
+    console.log('Login successful for user:', user.email);
 
     // Update last login
     user.lastLogin = Date.now();
@@ -97,7 +107,7 @@ export const login = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id || req.user.id);
     res.status(200).json({
       status: 'success',
       data: { user }
@@ -115,7 +125,7 @@ export const updatePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     // Get user from collection
-    const user = await User.findById(req.user.id).select('+password');
+    const user = await User.findById(req.user._id || req.user.id).select('+password');
 
     // Check if current password is correct
     if (!(await user.comparePassword(currentPassword))) {

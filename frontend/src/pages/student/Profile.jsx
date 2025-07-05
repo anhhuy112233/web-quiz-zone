@@ -4,6 +4,9 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
+import Modal from '../../components/common/Modal';
+import ProfileForm from '../../components/common/ProfileForm';
+import ChangePasswordForm from '../../components/common/ChangePasswordForm';
 import { getAuthHeaders } from '../../utils/api';
 
 const Profile = () => {
@@ -11,6 +14,9 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchUserProfile();
@@ -60,6 +66,19 @@ const Profile = () => {
     });
   };
 
+  const handleProfileUpdate = (updatedUser) => {
+    setUser(updatedUser);
+    setShowEditForm(false);
+    setSuccessMessage('Cập nhật thông tin thành công!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
+  const handlePasswordChange = (message) => {
+    setShowPasswordForm(false);
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -72,16 +91,33 @@ const Profile = () => {
     <div className="max-w-xl mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Thông tin cá nhân</h1>
-        <Button
-          variant="secondary"
-          onClick={() => navigate('/student/dashboard')}
-        >
-          Quay về trang chủ
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={() => setShowEditForm(true)}
+          >
+            ✏️ Chỉnh sửa thông tin
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowPasswordForm(true)}
+          >
+            🔒 Đổi mật khẩu
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => navigate('/student/dashboard')}
+          >
+            Quay về trang chủ
+          </Button>
+        </div>
       </div>
       
       {error && (
         <Alert type="error" message={error} onClose={() => setError('')} />
+      )}
+      
+      {successMessage && (
+        <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />
       )}
       
       <Card title="📋 Thông tin cá nhân">
@@ -120,6 +156,31 @@ const Profile = () => {
           )}
         </div>
       </Card>
+
+      {/* Modal chỉnh sửa thông tin */}
+      <Modal
+        isOpen={showEditForm}
+        onClose={() => setShowEditForm(false)}
+        title="Chỉnh sửa thông tin cá nhân"
+      >
+        <ProfileForm
+          user={user}
+          onUpdate={handleProfileUpdate}
+          onCancel={() => setShowEditForm(false)}
+        />
+      </Modal>
+
+      {/* Modal đổi mật khẩu */}
+      <Modal
+        isOpen={showPasswordForm}
+        onClose={() => setShowPasswordForm(false)}
+        title="Đổi mật khẩu"
+      >
+        <ChangePasswordForm
+          onSuccess={handlePasswordChange}
+          onCancel={() => setShowPasswordForm(false)}
+        />
+      </Modal>
     </div>
   );
 };

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../../components/common/Card';
+import Loading from '../../components/common/Loading';
+import Alert from '../../components/common/Alert';
+import { getAuthHeaders } from '../../utils/api';
 
 const AdminDashboard = ({ user }) => {
   const [stats, setStats] = useState({
@@ -9,48 +12,94 @@ const AdminDashboard = ({ user }) => {
     totalResults: 0,
     activeExams: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Fetch dashboard stats
-    // This would typically come from your API
-      setStats({
-      totalUsers: 150,
-      totalExams: 25,
-      totalResults: 1200,
-      activeExams: 8
-      });
+    fetchDashboardStats();
   }, []);
+
+  const fetchDashboardStats = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      // Fetch users count
+      const usersResponse = await fetch('http://localhost:5000/api/users', {
+        headers: getAuthHeaders()
+      });
+      const usersData = await usersResponse.json();
+      const totalUsers = usersData.data?.users?.length || 0;
+
+      // Fetch exams count
+      const examsResponse = await fetch('http://localhost:5000/api/exams', {
+        headers: getAuthHeaders()
+      });
+      const examsData = await examsResponse.json();
+      const totalExams = examsData.data?.exams?.length || 0;
+
+      // Fetch results count
+      const resultsResponse = await fetch('http://localhost:5000/api/results', {
+        headers: getAuthHeaders()
+      });
+      const resultsData = await resultsResponse.json();
+      const totalResults = resultsData.data?.results?.length || 0;
+
+      // Calculate active exams (exams with status 'active')
+      const activeExams = examsData.data?.exams?.filter(exam => exam.status === 'active').length || 0;
+
+      setStats({
+        totalUsers,
+        totalExams,
+        totalResults,
+        activeExams
+      });
+    } catch (err) {
+      setError('Không thể tải thống kê dashboard');
+      console.error('Error fetching dashboard stats:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const quickActions = [
         {
       title: 'Quản lý người dùng',
       description: 'Thêm, sửa, xóa người dùng',
       icon: '👥',
-      link: '/users',
+      link: '/admin/users',
       color: 'bg-blue-500'
         },
         {
       title: 'Quản lý đề thi',
       description: 'Tạo và quản lý đề thi',
       icon: '📝',
-      link: '/exams',
+      link: '/admin/exams',
       color: 'bg-green-500'
     },
     {
       title: 'Xem báo cáo',
       description: 'Thống kê và báo cáo',
       icon: '📊',
-      link: '/reports',
+      link: '/admin/reports',
       color: 'bg-purple-500'
         },
         {
       title: 'Cài đặt hệ thống',
       description: 'Cấu hình hệ thống',
       icon: '⚙️',
-      link: '/settings',
+      link: '/admin/settings',
       color: 'bg-orange-500'
     }
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loading size="lg" text="Đang tải thống kê..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,6 +113,10 @@ const AdminDashboard = ({ user }) => {
             Chào mừng {user?.name}, đây là tổng quan hệ thống
           </p>
       </div>
+
+        {error && (
+          <Alert type="error" message={error} onClose={() => setError('')} />
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

@@ -17,7 +17,7 @@ export const getUsers = async (req, res) => {
     // Phân quyền theo role của user hiện tại
     // Nếu là học sinh, chỉ cho xem thông tin của mình
     if (req.user.role === "student") {
-      query._id = req.user.id;
+      query._id = req.user._id || req.user.id;
     }
 
     // Nếu là giáo viên, chỉ cho xem danh sách học sinh
@@ -98,8 +98,8 @@ export const getUsers = async (req, res) => {
  */
 export const getUserProfile = async (req, res) => {
   try {
-    // Lấy thông tin user hiện tại từ database (req.user.id được set bởi middleware auth)
-    const user = await User.findById(req.user.id).select("-password");
+    // Lấy thông tin user hiện tại từ database (req.user._id được set bởi middleware auth)
+    const user = await User.findById(req.user._id || req.user.id).select("-password");
 
     // Kiểm tra user có tồn tại không
     if (!user) {
@@ -192,7 +192,7 @@ export const updateUserProfile = async (req, res) => {
     // $ne = not equal, nghĩa là tìm email giống nhưng khác user ID
     const existingUser = await User.findOne({
       email,
-      _id: { $ne: req.user.id },
+      _id: { $ne: req.user._id || req.user.id },
     });
     if (existingUser) {
       return res.status(400).json({
@@ -205,7 +205,7 @@ export const updateUserProfile = async (req, res) => {
     // new: true = trả về document đã được cập nhật
     // runValidators: true = chạy validation của mongoose
     const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
+      req.user._id || req.user.id,
       { name, email },
       { new: true, runValidators: true }
     ).select("-password"); // Loại trừ trường password
@@ -258,7 +258,9 @@ export const changePassword = async (req, res) => {
     }
 
     // Lấy user hiện tại (bao gồm password để so sánh)
-    const user = await User.findById(req.user.id);
+    const userId = req.user._id || req.user.id;
+    const user = await User.findById(userId).select('+password');
+    
     if (!user) {
       return res.status(404).json({
         status: "error",
@@ -267,11 +269,11 @@ export const changePassword = async (req, res) => {
     }
 
     // Kiểm tra mật khẩu hiện tại có đúng không
-    // bcrypt.compare so sánh mật khẩu plain text với hash
     const isPasswordValid = await bcrypt.compare(
       currentPassword,
       user.password
     );
+    
     if (!isPasswordValid) {
       return res.status(400).json({
         status: "error",
@@ -280,12 +282,14 @@ export const changePassword = async (req, res) => {
     }
 
     // Hash mật khẩu mới
-    const saltRounds = 10; // Số vòng hash (càng cao càng an toàn nhưng chậm hơn)
+    const saltRounds = 12; // Thống nhất với User model
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    // Cập nhật mật khẩu mới
-    user.password = hashedPassword;
-    await user.save(); // Lưu vào database
+    // Cập nhật mật khẩu mới (sử dụng updateOne để tránh pre-save hook)
+    await User.updateOne(
+      { _id: userId },
+      { password: hashedPassword }
+    );
 
     // Trả về response thành công
     res.status(200).json({
@@ -293,10 +297,10 @@ export const changePassword = async (req, res) => {
       message: "Đổi mật khẩu thành công.",
     });
   } catch (error) {
-    // Xử lý lỗi
-    res.status(400).json({
+    console.error('Error in changePassword:', error);
+    res.status(500).json({
       status: "error",
-      message: error.message,
+      message: "Có lỗi xảy ra khi đổi mật khẩu.",
     });
   }
 };
@@ -355,16 +359,20 @@ export const createUser = async (req, res) => {
       });
     }
     
-    // Hash mật khẩu trước khi lưu
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    
-    // Tạo user mới
+    // Tạo user mới (password sẽ được hash tự động bởi pre-save hook)
     const newUser = await User.create({
       name,
       email,
-      password: hashedPassword,
+      password, // Không hash ở đây, để pre-save hook xử lý
       role: role || "student", // Mặc định là student nếu không có role
+    });
+    
+    console.log('User created successfully:', {
+      id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      hasPassword: !!newUser.password
     });
     
     // Loại bỏ password khỏi response
