@@ -367,12 +367,12 @@ export const createUser = async (req, res) => {
       role: role || "student", // Mặc định là student nếu không có role
     });
     
+    // Log for debugging (remove in production)
     console.log('User created successfully:', {
       id: newUser._id,
       name: newUser.name,
       email: newUser.email,
-      role: newUser.role,
-      hasPassword: !!newUser.password
+      role: newUser.role
     });
     
     // Loại bỏ password khỏi response

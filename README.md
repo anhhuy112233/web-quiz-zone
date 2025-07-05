@@ -1,77 +1,83 @@
-# QuizZone
+# 🎓 Hệ thống thi trắc nghiệm trực tuyến
 
-Một ứng dụng web thi trắc nghiệm trực tuyến với các chức năng dành cho học sinh, giáo viên và quản trị viên.
+Hệ thống thi trắc nghiệm trực tuyến với đầy đủ chức năng cho học sinh, giáo viên và quản trị viên.
 
-## 🚀 Tính năng
+## ✨ Tính năng chính
 
-### Cho Học Sinh
-- Đăng ký và đăng nhập tài khoản
-- Xem danh sách các bài thi có sẵn
-- Tham gia thi trắc nghiệm
-- Xem kết quả thi
-- Theo dõi lịch sử thi
+### 👨‍🎓 Học sinh
+- Xem danh sách đề thi
+- Làm bài thi trực tuyến
+- Xem kết quả và điểm số
+- Quản lý thông tin cá nhân
 
-### Cho Giáo Viên
-- Tạo và quản lý bài thi
-- Thêm câu hỏi trắc nghiệm
-- Theo dõi kết quả của học sinh
-- Quản lý danh sách học sinh
-- Giám sát quá trình thi
+### 👨‍🏫 Giáo viên
+- Tạo và quản lý đề thi
+- Import câu hỏi từ file Excel
+- Theo dõi quá trình thi real-time
+- Xem kết quả và thống kê
 
-### Cho Quản Trị Viên
-- Quản lý tài khoản người dùng
-- Phân quyền người dùng
-- Thống kê tổng quan hệ thống
+### 👑 Quản trị viên
+- Quản lý tất cả người dùng
+- Quản lý tất cả đề thi
+- Xem báo cáo hệ thống
+- Cấu hình hệ thống
 
-## 🛠️ Công nghệ sử dụng
+## 🚀 Công nghệ sử dụng
 
 ### Backend
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
 - **MongoDB** - Database
+- **Mongoose** - ODM
 - **JWT** - Authentication
-- **bcrypt** - Password hashing
+- **Socket.IO** - Real-time communication
+- **Multer** - File upload
+- **bcryptjs** - Password hashing
 
 ### Frontend
-- **React.js** - UI library
+- **React** - UI library
+- **React Router** - Routing
+- **Tailwind CSS** - Styling
+- **Socket.IO Client** - Real-time
 - **Vite** - Build tool
-- **CSS3** - Styling
-- **JavaScript (ES6+)** - Programming language
 
-## 📁 Cấu trúc dự án
+## 📁 Cấu trúc project
 
 ```
-Web_Thi_Trac_Nghiem/
-├── backend/                 # Backend API
+web-thi-trac-nghiem/
+├── backend/
 │   ├── src/
-│   │   ├── controllers/     # Controllers
-│   │   ├── middleware/      # Middleware
-│   │   ├── models/          # Database models
-│   │   ├── routes/          # API routes
-│   │   └── app.js          # Main app file
+│   │   ├── controllers/     # Business logic
+│   │   ├── models/         # Database models
+│   │   ├── routes/         # API routes
+│   │   ├── middleware/     # Middleware functions
+│   │   ├── utils/          # Utility functions
+│   │   ├── constants/      # Constants
+│   │   └── socket.js       # Socket.IO setup
 │   └── package.json
-├── frontend/               # Frontend React app
+├── frontend/
 │   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── pages/          # Page components
-│   │   ├── services/       # API services
-│   │   └── styles/         # CSS files
+│   │   ├── components/     # Reusable components
+│   │   ├── pages/         # Page components
+│   │   ├── utils/         # Utility functions
+│   │   └── contexts/      # React contexts
 │   └── package.json
 └── README.md
 ```
 
-## 🚀 Cài đặt và chạy
+## 🛠️ Cài đặt và chạy
 
 ### Yêu cầu hệ thống
-- Node.js (v14 trở lên)
-- MongoDB
+- Node.js >= 16
+- MongoDB >= 4.4
 - npm hoặc yarn
 
 ### Backend
 ```bash
 cd backend
 npm install
-npm start
+cp .env.example .env  # Tạo file .env
+npm run dev
 ```
 
 ### Frontend
@@ -81,50 +87,89 @@ npm install
 npm run dev
 ```
 
-## 🔧 Cấu hình
-
-1. Tạo file `.env` trong thư mục `backend` với các biến môi trường:
-```
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/quiz-app
+### Biến môi trường (.env)
+```env
+# Backend
+MONGODB_URI=mongodb://localhost:27017/exam-system
 JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=7d
+PORT=5000
+
+# Frontend
+VITE_API_URL=http://localhost:5000/api
 ```
 
-2. Cấu hình MongoDB connection string trong backend
-
-## 📝 API Endpoints
+## 📚 API Documentation
 
 ### Authentication
 - `POST /api/auth/register` - Đăng ký
 - `POST /api/auth/login` - Đăng nhập
+- `GET /api/auth/me` - Lấy thông tin user
+
+### Users
+- `GET /api/users` - Lấy danh sách users
+- `POST /api/users` - Tạo user mới (admin/teacher)
+- `PUT /api/users/profile` - Cập nhật profile
+- `PUT /api/users/change-password` - Đổi mật khẩu
 
 ### Exams
-- `GET /api/exams` - Lấy danh sách bài thi
-- `POST /api/exams` - Tạo bài thi mới
-- `GET /api/exams/:id` - Lấy chi tiết bài thi
-- `PUT /api/exams/:id` - Cập nhật bài thi
-- `DELETE /api/exams/:id` - Xóa bài thi
+- `GET /api/exams` - Lấy danh sách đề thi
+- `POST /api/exams` - Tạo đề thi mới
+- `POST /api/exams/parse-excel` - Import từ Excel
+- `POST /api/exams/:id/start` - Bắt đầu thi
+- `POST /api/exams/:id/submit` - Nộp bài
 
 ### Results
-- `POST /api/results` - Nộp bài thi
-- `GET /api/results` - Lấy kết quả thi
+- `GET /api/results` - Lấy kết quả
+- `GET /api/results/exam/:examId` - Kết quả theo đề thi
 
-## 🤝 Đóng góp
+## 🔧 Development
 
-1. Fork dự án
-2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
-3. Commit thay đổi (`git commit -m 'Add some AmazingFeature'`)
-4. Push lên branch (`git push origin feature/AmazingFeature`)
-5. Mở Pull Request
+### Code Style
+- Sử dụng ESLint và Prettier
+- Tuân thủ naming conventions
+- Comment code rõ ràng
+- Tách biệt concerns
 
-## 📄 Giấy phép
+### Best Practices
+- Error handling tập trung
+- Validation middleware
+- Response format nhất quán
+- Security best practices
 
-Dự án này được phân phối dưới giấy phép MIT. Xem file `LICENSE` để biết thêm chi tiết.
+### Testing
+```bash
+# Backend tests
+npm test
 
-## 👥 Tác giả
+# Frontend tests
+npm test
+```
 
-- **Tên của bạn** - *Công việc ban đầu* - [GitHub](https://github.com/yourusername)
+## 📝 Changelog
 
-## 🙏 Cảm ơn
+### v1.0.0
+- ✅ Hệ thống authentication
+- ✅ Quản lý users và roles
+- ✅ Tạo và quản lý đề thi
+- ✅ Import Excel
+- ✅ Real-time monitoring
+- ✅ Admin dashboard
+- ✅ Responsive design
 
-Cảm ơn bạn đã quan tâm đến dự án này! # web-thi-trac-nghiem
+## 🤝 Contributing
+
+1. Fork project
+2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Tạo Pull Request
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 📞 Contact
+
+- Email: your-email@example.com
+- Project Link: [https://github.com/your-username/web-thi-trac-nghiem](https://github.com/your-username/web-thi-trac-nghiem)

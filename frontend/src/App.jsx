@@ -63,11 +63,6 @@ function App() {
 
   // Lắng nghe sự thay đổi session
   useEffect(() => {
-    const handleSessionChange = () => {
-      setUser(sessionManager.getCurrentUser());
-    };
-
-    // Kiểm tra session mỗi giây (có thể tối ưu hơn)
     const interval = setInterval(() => {
       const currentUser = sessionManager.getCurrentUser();
       if (currentUser !== user) {

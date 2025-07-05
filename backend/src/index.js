@@ -9,6 +9,7 @@ import userRoutes from './routes/userRoutes.js';
 import examRoutes from './routes/exams.js';
 import resultRoutes from './routes/results.js';
 import SocketManager from './socket.js';
+import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +40,10 @@ app.get('/api/stats', (req, res) => {
   const stats = socketManager.getSystemStats();
   res.json(stats);
 });
+
+// Error handling middleware (phải đặt sau routes)
+app.use(notFound);
+app.use(errorHandler);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)

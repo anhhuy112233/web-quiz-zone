@@ -65,22 +65,13 @@ export const login = async (req, res) => {
 
     // Check if user exists && password is correct
     const user = await User.findOne({ email }).select('+password');
-    console.log('Login attempt:', {
-      email,
-      userFound: !!user,
-      userRole: user?.role,
-      hasPassword: !!user?.password
-    });
     
     if (!user || !(await user.comparePassword(password))) {
-      console.log('Login failed: user not found or password incorrect');
       return res.status(401).json({
         status: 'error',
         message: 'Email hoặc mật khẩu không đúng.'
       });
     }
-    
-    console.log('Login successful for user:', user.email);
 
     // Update last login
     user.lastLogin = Date.now();
