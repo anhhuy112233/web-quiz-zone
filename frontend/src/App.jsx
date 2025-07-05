@@ -18,6 +18,7 @@ import ExamResult from './pages/student/ExamResult';
 import StudentResults from './pages/student/StudentResults';
 import ExamDetailResult from './pages/student/ExamDetailResult';
 import Profile from './pages/student/Profile';
+import TeacherProfile from './pages/teacher/Profile';
 import ExamResults from './pages/teacher/ExamResults';
 import ExamDetailResults from './pages/teacher/ExamDetailResults';
 import Students from './pages/teacher/Students';
@@ -263,6 +264,15 @@ function App() {
           <ProtectedRoute role="teacher">
             <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
               <Students />
+            </Layout>
+          </ProtectedRoute>
+        } />
+
+        {/* Teacher Profile Route */}
+        <Route path="/teacher/profile" element={
+          <ProtectedRoute role="teacher">
+            <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
+              <TeacherProfile />
             </Layout>
           </ProtectedRoute>
         } />

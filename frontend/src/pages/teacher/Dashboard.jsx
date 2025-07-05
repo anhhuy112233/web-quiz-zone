@@ -264,6 +264,22 @@ const TeacherDashboard = ({ user }) => {
                 </div>
               </Card>
             </Link>
+
+            <Link to="/teacher/profile" className="block group">
+              <Card className="bg-white hover:shadow-lg transition-shadow duration-200">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
+                    <span className="text-2xl text-white">👨‍🏫</span>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Thông tin cá nhân
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Xem và cập nhật thông tin
+                  </p>
+                </div>
+              </Card>
+            </Link>
           </div>
         </div>
 

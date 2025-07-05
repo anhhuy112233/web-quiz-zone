@@ -36,28 +36,63 @@ const CreateExam = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Tạo bài thi mới
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Điền thông tin bài thi và thêm các câu hỏi.
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Tạo bài thi mới
+          </h1>
+          <p className="text-gray-600 max-w-md mx-auto">
+            Thiết kế bài thi với các câu hỏi đa dạng và cấu hình thời gian phù hợp
+          </p>
+        </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6">
+            <Alert
+              type="error"
+              message={error}
+              onClose={() => setError('')}
+            />
+          </div>
+        )}
+
+        {/* Form Container */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
+            <h2 className="text-xl font-semibold text-white flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Thông tin bài thi
+            </h2>
+          </div>
+          
+          <div className="p-6">
+            <ExamForm
+              onSubmit={handleSubmit}
+              loading={loading}
+            />
+          </div>
+        </div>
+
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
+              <Loading size="md" />
+              <span className="text-gray-700 font-medium">Đang tạo bài thi...</span>
+            </div>
+          </div>
+        )}
       </div>
-
-      {error && (
-        <Alert
-          type="error"
-          message={error}
-          onClose={() => setError('')}
-        />
-      )}
-
-      <ExamForm
-        onSubmit={handleSubmit}
-        loading={loading}
-      />
     </div>
   );
 };
