@@ -3,9 +3,9 @@ import User from '../models/User.js';
 
 export const protect = async (req, res, next) => {
   try {
-    // 1) Get token from header
+    // 1) Kiểm tra token
     let token;
-    if (req.headers.authorization?.startsWith('Bearer')) {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
 
@@ -19,16 +19,16 @@ export const protect = async (req, res, next) => {
     // 2) Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 3) Check if user still exists
+    // 3) Kiểm tra user có tồn tại không
     const user = await User.findById(decoded.id);
     if (!user) {
       return res.status(401).json({
         status: 'error',
-        message: 'Người dùng không tồn tại.'
+        message: 'Token không hợp lệ hoặc đã hết hạn.'
       });
     }
 
-    // 4) Grant access to protected route
+    // 4) Gán user vào request
     req.user = user;
     next();
   } catch (error) {
@@ -41,6 +41,13 @@ export const protect = async (req, res, next) => {
 
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Không tìm thấy thông tin người dùng.'
+      });
+    }
+
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         status: 'error',
