@@ -352,22 +352,29 @@ export const submitExam = async (req, res) => {
     const processedAnswers = answers.map(answer => {
       // Tìm câu hỏi tương ứng trong bài thi
       const question = exam.questions.find(q => q._id.toString() === answer.questionId.toString());
-      // Kiểm tra đáp án có đúng không
-      const isCorrect = question && question.correctAnswer === answer.selectedAnswer;
+      
+      // Xử lý trường hợp chưa chọn đáp án (selectedAnswer = -1)
+      const hasAnswered = answer.selectedAnswer !== -1 && answer.selectedAnswer !== null;
+      const isCorrect = hasAnswered && question && question.correctAnswer === answer.selectedAnswer;
+      
       if (isCorrect) correctAnswers++;
+      
       return {
         questionId: answer.questionId,
         selectedAnswer: answer.selectedAnswer,
-        isCorrect
+        isCorrect,
+        hasAnswered
       };
     });
 
     // Cập nhật result với kết quả
     result.answers = processedAnswers;
     result.correctAnswers = correctAnswers;
-    result.score = Math.round((correctAnswers / exam.totalQuestions) * 100); // Tính điểm phần trăm
+    result.totalQuestions = exam.questions.length; // Lưu tổng số câu hỏi
+    result.score = Math.round((correctAnswers / result.totalQuestions) * 100); // Tính điểm phần trăm
     result.status = 'completed';
     result.endTime = new Date();
+    result.duration = Math.round((result.endTime - result.startTime) / 60000); // Thời gian làm bài tính bằng phút
     await result.save();
     
     // Xóa các result in_progress còn lại (nếu có)

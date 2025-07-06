@@ -185,7 +185,7 @@ const ExamResult = () => {
         {/* ==================== ANSWER SUMMARY ==================== */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold mb-4">Tóm tắt bài làm</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Card câu trả lời đúng */}
             <div className="bg-green-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600">Câu trả lời đúng</p>
@@ -195,7 +195,17 @@ const ExamResult = () => {
             {/* Card câu trả lời sai */}
             <div className="bg-red-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600">Câu trả lời sai</p>
-              <p className="text-2xl font-bold text-red-600">{result.totalQuestions - result.correctAnswers}</p>
+              <p className="text-2xl font-bold text-red-600">
+                {result.answers ? result.answers.filter(a => a.hasAnswered && !a.isCorrect).length : result.totalQuestions - result.correctAnswers}
+              </p>
+            </div>
+            
+            {/* Card câu chưa trả lời */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">Câu chưa trả lời</p>
+              <p className="text-2xl font-bold text-gray-600">
+                {result.answers ? result.answers.filter(a => !a.hasAnswered).length : 0}
+              </p>
             </div>
           </div>
         </div>

@@ -10,12 +10,16 @@ const answerSchema = new mongoose.Schema({
   selectedAnswer: {
     type: Number,
     required: true,
-    min: 0,  // Đáp án A (index 0)
-    max: 3   // Đáp án D (index 3)
+    min: -1,  // -1 nghĩa là chưa chọn đáp án
+    max: 3    // Đáp án D (index 3)
   },
   isCorrect: {
     type: Boolean,
     required: true  // Đáp án có đúng hay không
+  },
+  hasAnswered: {
+    type: Boolean,
+    required: true  // Có trả lời câu hỏi này hay không
   }
 });
 

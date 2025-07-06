@@ -246,9 +246,11 @@ const ExamStart = () => {
       const timeTaken = Math.floor((new Date() - startTime) / 1000);
       
       answers.forEach((answer, index) => {
-        if (answer === exam.questions[index].correctAnswer) {
+        // Chỉ tính điểm cho câu đã trả lời và đúng
+        if (answer !== null && answer === exam.questions[index].correctAnswer) {
           correctAnswers++;
         }
+        // Câu chưa trả lời (null) sẽ được tính là sai, không có điểm
       });
 
       const score = Math.round((correctAnswers / totalQuestions) * 100);
@@ -258,15 +260,18 @@ const ExamStart = () => {
       
       // ==================== GỬI ĐÁP ÁN LÊN SERVER ====================
       
+      // Chuẩn bị đáp án để gửi lên server
+      const answersToSubmit = answers.map((selectedAnswer, idx) => ({
+        questionId: exam.questions[idx]._id,
+        selectedAnswer: selectedAnswer !== null ? selectedAnswer : -1 // -1 nghĩa là chưa chọn đáp án
+      }));
+      
       // Gửi đáp án lên backend
       const response = await fetch(`http://localhost:5000/api/exams/${id}/submit`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          answers: answers.map((selectedAnswer, idx) => ({
-            questionId: exam.questions[idx]._id,
-            selectedAnswer
-          }))
+          answers: answersToSubmit
         })
       });
       const data = await response.json();
@@ -481,45 +486,64 @@ const ExamStart = () => {
         </div>
 
         {/* ==================== NAVIGATION ==================== */}
-        <div className="flex justify-between items-center">
-          {/* Nút câu trước */}
-          <Button
-            variant="secondary"
-            onClick={() => setCurrent((c) => Math.max(0, c - 1))}
-            disabled={current === 0 || submitting}
-            className="px-6 py-2"
-          >
-            ← Câu trước
-          </Button>
-          
-          {/* Danh sách câu hỏi */}
-          <div className="flex space-x-2">
-            {exam.questions.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrent(idx)}
-                className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-                  idx === current
-                    ? 'bg-blue-600 text-white'
-                    : answers[idx] !== null
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {idx + 1}
-              </button>
-            ))}
-          </div>
+        <div className="space-y-4">
+          {/* Nút điều hướng */}
+          <div className="flex justify-between items-center">
+            {/* Nút câu trước */}
+            <Button
+              variant="secondary"
+              onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+              disabled={current === 0 || submitting}
+              className="px-6 py-2"
+            >
+              ← Câu trước
+            </Button>
 
-          {/* Nút câu tiếp */}
-          <Button
-            variant="secondary"
-            onClick={() => setCurrent((c) => Math.min(exam.questions.length - 1, c + 1))}
-            disabled={current === exam.questions.length - 1 || submitting}
-            className="px-6 py-2"
-          >
-            Câu tiếp →
-          </Button>
+            {/* Thông tin câu hiện tại */}
+            <div className="text-center">
+              <span className="text-sm text-gray-600">
+                Câu {current + 1} / {exam.questions.length}
+              </span>
+            </div>
+
+            {/* Nút câu tiếp */}
+            <Button
+              variant="secondary"
+              onClick={() => setCurrent((c) => Math.min(exam.questions.length - 1, c + 1))}
+              disabled={current === exam.questions.length - 1 || submitting}
+              className="px-6 py-2"
+            >
+              Câu tiếp →
+            </Button>
+          </div>
+          
+          {/* Danh sách câu hỏi - có thể scroll */}
+          <div className="border-t pt-4">
+            <div className="text-sm text-gray-600 mb-3">Chọn câu hỏi:</div>
+            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border border-gray-200 rounded-lg">
+              {exam.questions.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrent(idx)}
+                  className={`w-8 h-8 rounded-full text-sm font-medium transition-colors flex-shrink-0 ${
+                    idx === current
+                      ? 'bg-blue-600 text-white'
+                      : answers[idx] !== null
+                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  title={`Câu ${idx + 1}${answers[idx] !== null ? ' - Đã trả lời' : ' - Chưa trả lời'}`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+              <span>🟢 Đã trả lời</span>
+              <span>⚪ Chưa trả lời</span>
+              <span>🔵 Câu hiện tại</span>
+            </div>
+          </div>
         </div>
       </div>
 
