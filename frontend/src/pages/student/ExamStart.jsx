@@ -7,6 +7,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import socketClient from '../../utils/socket.js';
 import { getAuthHeaders } from '../../utils/api.js';
+import sessionManager from '../../utils/sessionManager.js';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import Button from '../../components/common/Button';
@@ -40,6 +41,13 @@ const ExamStart = () => {
     fetchExam();
     setupSocketConnection();
     
+    // Cleanup khi tab đóng
+    const handleBeforeUnload = () => {
+      sessionManager.cleanupOnTabClose();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
     return () => {
       // Cleanup khi component unmount
       if (examStarted) {
@@ -48,14 +56,17 @@ const ExamStart = () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [id]);
 
   // Lưu trạng thái bài thi vào localStorage để phục hồi khi refresh
   useEffect(() => {
     if (examStarted && exam && answers.length > 0) {
+      const currentUser = sessionManager.getCurrentUser();
       const examState = {
         examId: id,
+        userId: currentUser?._id, // Lưu userId để kiểm tra khi phục hồi
         answers: answers,
         current: current,
         startTime: startTime,
@@ -86,6 +97,12 @@ const ExamStart = () => {
    * Thiết lập kết nối Socket.IO và lắng nghe các sự kiện
    */
   const setupSocketConnection = () => {
+    // Kiểm tra xem đã kết nối socket chưa
+    if (socketClient.isSocketConnected()) {
+      console.log('Socket already connected');
+      return;
+    }
+
     // Kết nối Socket.IO
     const socket = socketClient.connect();
     
@@ -94,16 +111,21 @@ const ExamStart = () => {
       return;
     }
 
-    // Lắng nghe cập nhật thời gian từ server
-    socketClient.on('timeUpdate', (data) => {
-      if (data.examId === id) {
-        setTimeLeft(data.remainingTime);
-      }
-    });
+    // Đợi socket kết nối thành công
+    socket.on('connect', () => {
+      console.log('Socket connected successfully');
+      
+      // Lắng nghe cập nhật thời gian từ server
+      socketClient.on('timeUpdate', (data) => {
+        if (data.examId === id) {
+          setTimeLeft(data.remainingTime);
+        }
+      });
 
-    // Lắng nghe thông báo từ giáo viên
-    socketClient.on('notification', (data) => {
-      console.log('Notification from teacher:', data.message);
+      // Lắng nghe thông báo từ giáo viên
+      socketClient.on('notification', (data) => {
+        console.log('Notification from teacher:', data.message);
+      });
     });
   };
 
@@ -121,9 +143,12 @@ const ExamStart = () => {
       const savedState = localStorage.getItem('examState');
       if (savedState) {
         const examState = JSON.parse(savedState);
-        if (examState.examId === id) {
+        
+        // Kiểm tra xem examState có thuộc về user hiện tại không
+        const currentUser = sessionManager.getCurrentUser();
+        if (examState.examId === id && currentUser && examState.userId === currentUser._id) {
           // Phục hồi trạng thái bài thi
-          console.log('Restoring exam state from localStorage');
+          console.log('Restoring exam state from localStorage for user:', currentUser.name);
           setAnswers(examState.answers);
           setCurrent(examState.current);
           setStartTime(new Date(examState.startTime));
@@ -138,12 +163,24 @@ const ExamStart = () => {
           const examData = await examResponse.json();
           if (examResponse.ok) {
             setExam(examData.data.exam);
+            
+            // Đảm bảo socket đã kết nối trước khi tham gia phòng thi
+            if (!socketClient.isSocketConnected()) {
+              setupSocketConnection();
+              // Đợi một chút để socket kết nối
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
             // Tham gia lại phòng thi
             socketClient.joinExam(id);
             socketClient.examStarted(id, new Date(examState.startTime));
             setLoading(false);
             return;
           }
+        } else {
+          // Xóa examState không hợp lệ
+          console.log('Removing invalid examState - user mismatch or exam mismatch');
+          localStorage.removeItem('examState');
         }
       }
       
@@ -173,6 +210,13 @@ const ExamStart = () => {
       const remainingTime = Math.max(0, Math.floor((end - now) / 1000));
       setTimeLeft(remainingTime);
       setStartTime(now);
+      
+      // Đảm bảo socket đã kết nối trước khi tham gia phòng thi
+      if (!socketClient.isSocketConnected()) {
+        setupSocketConnection();
+        // Đợi một chút để socket kết nối
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
       
       // Tham gia phòng thi và báo cáo bắt đầu làm bài
       console.log('Joining exam room and starting exam...');

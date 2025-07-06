@@ -6,6 +6,20 @@ class SessionManager {
   constructor() {
     this.currentSession = null;  // ID của session hiện tại
     this.sessions = this.loadSessions();  // Load tất cả sessions từ localStorage
+    this.tabId = this.getTabId();  // Unique ID cho tab hiện tại
+  }
+
+  /**
+   * Tạo unique ID cho tab hiện tại
+   * @returns {String} Tab ID
+   */
+  getTabId() {
+    let tabId = sessionStorage.getItem('quizzone_tab_id');
+    if (!tabId) {
+      tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem('quizzone_tab_id', tabId);
+    }
+    return tabId;
   }
 
   /**
@@ -48,6 +62,9 @@ class SessionManager {
    * @returns {String} Session ID mới
    */
   createSession(user, token) {
+    // Xóa examState cũ khi tạo session mới để tránh xung đột
+    localStorage.removeItem('examState');
+    
     const sessionId = this.generateSessionId();
     const session = {
       id: sessionId,
@@ -61,8 +78,8 @@ class SessionManager {
     this.currentSession = sessionId;
     this.saveSessions();
     
-    // Lưu session hiện tại vào sessionStorage (chỉ cho tab hiện tại)
-    sessionStorage.setItem('quizzone_current_session', sessionId);
+    // Lưu session hiện tại vào localStorage với tab-specific key
+    localStorage.setItem(`quizzone_current_session_${this.tabId}`, sessionId);
     
     return sessionId;
   }
@@ -73,7 +90,8 @@ class SessionManager {
    */
   getCurrentSession() {
     if (!this.currentSession) {
-      const sessionId = sessionStorage.getItem('quizzone_current_session');
+      // Sử dụng tab-specific key để tránh xung đột giữa các tab
+      const sessionId = localStorage.getItem(`quizzone_current_session_${this.tabId}`);
       if (sessionId && this.sessions[sessionId]) {
         this.currentSession = sessionId;
       }
@@ -120,8 +138,11 @@ class SessionManager {
    */
   switchSession(sessionId) {
     if (this.sessions[sessionId]) {
+      // Xóa examState cũ khi chuyển session để tránh xung đột
+      localStorage.removeItem('examState');
+      
       this.currentSession = sessionId;
-      sessionStorage.setItem('quizzone_current_session', sessionId);
+      localStorage.setItem(`quizzone_current_session_${this.tabId}`, sessionId);
       this.sessions[sessionId].lastActive = new Date().toISOString();
       this.saveSessions();
       return true;
@@ -139,7 +160,7 @@ class SessionManager {
       delete this.sessions[sessionId];
       if (this.currentSession === sessionId) {
         this.currentSession = null;
-        sessionStorage.removeItem('quizzone_current_session');
+        localStorage.removeItem(`quizzone_current_session_${this.tabId}`);
       }
       this.saveSessions();
       return true;
@@ -151,9 +172,21 @@ class SessionManager {
    * Xóa session hiện tại (logout)
    */
   logout() {
+    // Xóa examState khi logout để tránh xung đột
+    localStorage.removeItem('examState');
+    
     if (this.currentSession) {
       this.removeSession(this.currentSession);
     }
+  }
+
+  /**
+   * Cleanup khi tab đóng
+   */
+  cleanupOnTabClose() {
+    // Xóa tab-specific session khi tab đóng
+    localStorage.removeItem(`quizzone_current_session_${this.tabId}`);
+    sessionStorage.removeItem('quizzone_tab_id');
   }
 
   /**

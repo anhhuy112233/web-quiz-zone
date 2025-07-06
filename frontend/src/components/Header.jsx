@@ -108,7 +108,7 @@ const Header = ({ user, onLogout, onSessionChange }) => {
                 )}
 
                 {/* Component chuyển đổi session */}
-                <SessionSwitcher onSessionChange={onSessionChange} />
+                {/* <SessionSwitcher onSessionChange={onSessionChange} /> */}
 
                 {/* Thông tin user và nút đăng xuất */}
                 <div className="flex items-center space-x-4">
