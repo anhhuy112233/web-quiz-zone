@@ -6,9 +6,8 @@
 // Import sessionManager để quản lý session và token
 import sessionManager from './sessionManager';
 
-// API Base URL - tự động chọn URL dựa trên environment
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.DEV ? 'http://localhost:5000' : 'https://web-quiz-zone.onrender.com');
+// API Base URL - sử dụng production URL mặc định
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://web-quiz-zone.onrender.com';
 
 /**
  * Helper function để tạo API URL
