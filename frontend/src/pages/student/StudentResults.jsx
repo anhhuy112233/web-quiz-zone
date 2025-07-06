@@ -10,6 +10,7 @@ import Button from "../../components/common/Button";
 import Loading from "../../components/common/Loading";
 import Alert from "../../components/common/Alert";
 import { getAuthHeaders } from "../../utils/api";
+import { createApiUrl } from '../utils/api';
 
 /**
  * StudentResults component
@@ -41,14 +42,14 @@ const StudentResults = () => {
       setLoading(true);
 
       // Fetch kết quả thi của học sinh
-      const resultsResponse = await fetch("http://localhost:5000/api/results", {
+      const resultsResponse = await fetch(createApiUrl('/api/results'), {
         headers: getAuthHeaders(),
       });
       const resultsData = await resultsResponse.json();
       setResults(resultsResponse.ok ? resultsData.data.results || [] : []);
 
       // Fetch danh sách đề thi để so sánh
-      const examsResponse = await fetch("http://localhost:5000/api/exams", {
+      const examsResponse = await fetch(createApiUrl('/api/exams'), {
         headers: getAuthHeaders(),
       });
       const examsData = await examsResponse.json();

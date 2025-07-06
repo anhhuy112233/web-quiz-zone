@@ -10,6 +10,7 @@ import Input from '../../components/common/Input';
 import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
 import { getAuthHeaders } from '../../utils/api';
+import { createApiUrl } from '../utils/api';
 
 /**
  * Settings component
@@ -45,7 +46,7 @@ const Settings = () => {
     try {
       setLoading(true);
       // Trong thực tế, bạn sẽ gọi API để lấy cài đặt
-      // const response = await fetch('http://localhost:5000/api/admin/settings', {
+      // const response = await fetch(createApiUrl('/api/admin/settings'), {
       //   headers: getAuthHeaders()
       // });
       // const data = await response.json();
@@ -83,7 +84,7 @@ const Settings = () => {
       setSuccessMessage('');
 
       // Trong thực tế, bạn sẽ gọi API để lưu cài đặt
-      // const response = await fetch('http://localhost:5000/api/admin/settings', {
+      // const response = await fetch(createApiUrl('/api/admin/settings'), {
       //   method: 'PUT',
       //   headers: getAuthHeaders(),
       //   body: JSON.stringify(settings)

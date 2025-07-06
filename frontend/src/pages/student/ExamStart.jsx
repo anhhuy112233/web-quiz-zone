@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import socketClient from '../../utils/socket.js';
-import { getAuthHeaders } from '../../utils/api.js';
+import { getAuthHeaders, createApiUrl } from '../../utils/api.js';
 import sessionManager from '../../utils/sessionManager.js';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
@@ -114,17 +114,17 @@ const ExamStart = () => {
     // Đợi socket kết nối thành công
     socket.on('connect', () => {
       console.log('Socket connected successfully');
-      
-      // Lắng nghe cập nhật thời gian từ server
-      socketClient.on('timeUpdate', (data) => {
-        if (data.examId === id) {
-          setTimeLeft(data.remainingTime);
-        }
-      });
 
-      // Lắng nghe thông báo từ giáo viên
-      socketClient.on('notification', (data) => {
-        console.log('Notification from teacher:', data.message);
+    // Lắng nghe cập nhật thời gian từ server
+    socketClient.on('timeUpdate', (data) => {
+      if (data.examId === id) {
+        setTimeLeft(data.remainingTime);
+      }
+    });
+
+    // Lắng nghe thông báo từ giáo viên
+    socketClient.on('notification', (data) => {
+      console.log('Notification from teacher:', data.message);
       });
     });
   };
@@ -157,7 +157,7 @@ const ExamStart = () => {
           setShowRestoreMessage(true);
           
           // Lấy thông tin bài thi
-          const examResponse = await fetch(`http://localhost:5000/api/exams/${id}`, {
+          const examResponse = await fetch(createApiUrl(`/api/exams/${id}`), {
             headers: getAuthHeaders()
           });
           const examData = await examResponse.json();
@@ -187,7 +187,7 @@ const ExamStart = () => {
       // ==================== BẮT ĐẦU BÀI THI MỚI ====================
       
       // Bắt đầu làm bài mới (gọi API start)
-      const response = await fetch(`http://localhost:5000/api/exams/${id}/start`, {
+              const response = await fetch(createApiUrl(`/api/exams/${id}/start`), {
         method: 'POST',
         headers: getAuthHeaders()
       });
@@ -311,7 +311,7 @@ const ExamStart = () => {
       }));
       
       // Gửi đáp án lên backend
-      const response = await fetch(`http://localhost:5000/api/exams/${id}/submit`, {
+              const response = await fetch(createApiUrl(`/api/exams/${id}/submit`), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -532,33 +532,33 @@ const ExamStart = () => {
         {/* ==================== NAVIGATION ==================== */}
         <div className="space-y-4">
           {/* Nút điều hướng */}
-          <div className="flex justify-between items-center">
-            {/* Nút câu trước */}
-            <Button
-              variant="secondary"
-              onClick={() => setCurrent((c) => Math.max(0, c - 1))}
-              disabled={current === 0 || submitting}
-              className="px-6 py-2"
-            >
-              ← Câu trước
-            </Button>
-
+        <div className="flex justify-between items-center">
+          {/* Nút câu trước */}
+          <Button
+            variant="secondary"
+            onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+            disabled={current === 0 || submitting}
+            className="px-6 py-2"
+          >
+            ← Câu trước
+          </Button>
+          
             {/* Thông tin câu hiện tại */}
             <div className="text-center">
               <span className="text-sm text-gray-600">
                 Câu {current + 1} / {exam.questions.length}
               </span>
-            </div>
+          </div>
 
-            {/* Nút câu tiếp */}
-            <Button
-              variant="secondary"
-              onClick={() => setCurrent((c) => Math.min(exam.questions.length - 1, c + 1))}
-              disabled={current === exam.questions.length - 1 || submitting}
-              className="px-6 py-2"
-            >
-              Câu tiếp →
-            </Button>
+          {/* Nút câu tiếp */}
+          <Button
+            variant="secondary"
+            onClick={() => setCurrent((c) => Math.min(exam.questions.length - 1, c + 1))}
+            disabled={current === exam.questions.length - 1 || submitting}
+            className="px-6 py-2"
+          >
+            Câu tiếp →
+          </Button>
           </div>
           
           {/* Danh sách câu hỏi - có thể scroll */}

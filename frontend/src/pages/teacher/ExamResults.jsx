@@ -10,6 +10,7 @@ import Button from '../../components/common/Button';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import { getAuthHeaders } from '../../utils/api';
+import { createApiUrl } from '../utils/api';
 
 /**
  * ExamResults component
@@ -42,7 +43,7 @@ const ExamResults = () => {
       // ==================== FETCH EXAMS ====================
       
       // Lấy danh sách tất cả đề thi
-      const examsResponse = await fetch('http://localhost:5000/api/exams', {
+      const examsResponse = await fetch(createApiUrl('/api/exams'), {
         headers: getAuthHeaders()
       });
       const examsData = await examsResponse.json();
@@ -55,7 +56,7 @@ const ExamResults = () => {
       // ==================== FETCH RESULTS ====================
       
       // Lấy tất cả kết quả thi
-      const resultsResponse = await fetch('http://localhost:5000/api/results', {
+      const resultsResponse = await fetch(createApiUrl('/api/results'), {
         headers: getAuthHeaders()
       });
       const resultsData = await resultsResponse.json();
@@ -64,7 +65,7 @@ const ExamResults = () => {
       // ==================== FETCH STUDENTS ====================
       
       // Lấy danh sách học sinh
-      const studentsResponse = await fetch('http://localhost:5000/api/users?role=student', {
+      const studentsResponse = await fetch(createApiUrl('/api/users?role=student'), {
         headers: getAuthHeaders()
       });
       const studentsData = await studentsResponse.json();

@@ -10,6 +10,7 @@ import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import { formatDate } from '../../utils/dateUtils';
 import { getAuthHeaders } from '../../utils/api';
+import { createApiUrl } from '../utils/api';
 
 /**
  * Students component
@@ -35,7 +36,7 @@ const Students = () => {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/users?role=student', {
+      const response = await fetch(createApiUrl('/api/users?role=student'), {
         headers: getAuthHeaders()
       });
       

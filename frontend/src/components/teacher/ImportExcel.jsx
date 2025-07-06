@@ -13,6 +13,7 @@ import Alert from '../common/Alert';
  * @param {Function} onQuestionsImported - Callback khi import thành công
  * @param {Function} onClose - Callback khi đóng modal
  * @returns {JSX.Element} Modal import Excel với preview và validation
+import { createApiUrl } from '../utils/api';
  */
 const ImportExcel = ({ onQuestionsImported, onClose }) => {
   // State quản lý file, loading, lỗi và preview
@@ -52,7 +53,7 @@ const ImportExcel = ({ onQuestionsImported, onClose }) => {
       formData.append('file', file);
 
       // Gọi API xử lý file
-      const response = await fetch('http://localhost:5000/api/exams/parse-excel', {
+      const response = await fetch(createApiUrl('/api/exams/parse-excel'), {
         method: 'POST',
         headers: {
           'Authorization': getAuthHeaders().Authorization,

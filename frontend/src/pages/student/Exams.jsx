@@ -10,6 +10,7 @@ import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import Button from '../../components/common/Button';
 import { getAuthHeaders } from '../../utils/api';
+import { createApiUrl } from '../utils/api';
 
 /**
  * StudentExams component
@@ -32,7 +33,7 @@ const StudentExams = () => {
   const fetchExams = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/exams', {
+      const response = await fetch(createApiUrl('/api/exams'), {
         headers: getAuthHeaders()
       });
       

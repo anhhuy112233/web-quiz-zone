@@ -9,6 +9,7 @@ import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import { getAuthHeaders } from '../../utils/api';
+import { createApiUrl } from '../utils/api';
 
 /**
  * StudentDashboard component
@@ -43,7 +44,7 @@ const StudentDashboard = ({ user }) => {
       // ==================== FETCH AVAILABLE EXAMS ====================
       
       // Lấy danh sách tất cả đề thi có sẵn
-      const examsResponse = await fetch('http://localhost:5000/api/exams', {
+      const examsResponse = await fetch(createApiUrl('/api/exams'), {
         headers: getAuthHeaders()
       });
       
@@ -58,7 +59,7 @@ const StudentDashboard = ({ user }) => {
       // ==================== FETCH STUDENT RESULTS ====================
       
       // Lấy kết quả thi của học sinh
-      const resultsResponse = await fetch('http://localhost:5000/api/results', {
+      const resultsResponse = await fetch(createApiUrl('/api/results'), {
         headers: getAuthHeaders()
       });
       

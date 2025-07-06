@@ -11,6 +11,7 @@ import Loading from '../../components/common/Loading';
 import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
 import { getAuthHeaders } from '../../utils/api';
+import { createApiUrl } from '../utils/api';
 
 /**
  * Users component
@@ -45,7 +46,7 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch(createApiUrl('/api/users'), {
         headers: getAuthHeaders()
       });
       
@@ -80,7 +81,7 @@ const Users = () => {
       setError('');
       
       // Gọi API tạo người dùng mới
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch(createApiUrl('/api/users'), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(formData)

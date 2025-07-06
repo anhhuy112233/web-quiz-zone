@@ -9,6 +9,7 @@ import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import { getAuthHeaders } from '../../utils/api';
+import { createApiUrl } from '../utils/api';
 
 /**
  * AdminDashboard component
@@ -42,7 +43,7 @@ const AdminDashboard = ({ user }) => {
       // ==================== FETCH USERS COUNT ====================
       
       // Lấy số lượng người dùng
-      const usersResponse = await fetch('http://localhost:5000/api/users', {
+      const usersResponse = await fetch(createApiUrl('/api/users'), {
         headers: getAuthHeaders()
       });
       const usersData = await usersResponse.json();
@@ -51,7 +52,7 @@ const AdminDashboard = ({ user }) => {
       // ==================== FETCH EXAMS COUNT ====================
       
       // Lấy số lượng đề thi
-      const examsResponse = await fetch('http://localhost:5000/api/exams', {
+      const examsResponse = await fetch(createApiUrl('/api/exams'), {
         headers: getAuthHeaders()
       });
       const examsData = await examsResponse.json();
@@ -60,7 +61,7 @@ const AdminDashboard = ({ user }) => {
       // ==================== FETCH RESULTS COUNT ====================
       
       // Lấy số lượng kết quả thi
-      const resultsResponse = await fetch('http://localhost:5000/api/results', {
+      const resultsResponse = await fetch(createApiUrl('/api/results'), {
         headers: getAuthHeaders()
       });
       const resultsData = await resultsResponse.json();

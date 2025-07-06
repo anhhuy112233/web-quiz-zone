@@ -13,6 +13,7 @@ import Modal from '../../components/common/Modal';
 import ProfileForm from '../../components/common/ProfileForm';
 import ChangePasswordForm from '../../components/common/ChangePasswordForm';
 import { getAuthHeaders } from '../../utils/api';
+import { createApiUrl } from '../utils/api';
 
 /**
  * Profile component
@@ -40,7 +41,7 @@ const Profile = () => {
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch(createApiUrl('/api/users/profile'), {
         headers: getAuthHeaders()
       });
       
