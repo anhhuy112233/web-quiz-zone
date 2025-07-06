@@ -44,8 +44,12 @@ class SocketClient {
         }
       }
 
+      // Socket.IO server URL - tự động chọn URL dựa trên environment
+      const socketUrl = import.meta.env.VITE_SOCKET_URL || 
+        (import.meta.env.DEV ? 'http://localhost:5000' : 'https://your-backend-domain.onrender.com');
+
       // Tạo kết nối Socket.IO với cấu hình
-      this.socket = io('http://localhost:5000', {
+      this.socket = io(socketUrl, {
         auth: {
           token: token  // Gửi token để xác thực
         },

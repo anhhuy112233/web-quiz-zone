@@ -6,6 +6,21 @@
 // Import sessionManager để quản lý session và token
 import sessionManager from './sessionManager';
 
+// API Base URL - tự động chọn URL dựa trên environment
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.DEV ? 'http://localhost:5000' : 'https://your-backend-domain.onrender.com');
+
+/**
+ * Helper function để tạo API URL
+ * @param {string} endpoint - API endpoint (ví dụ: '/api/auth/login')
+ * @returns {string} Full API URL
+ */
+export const createApiUrl = (endpoint) => {
+  // Đảm bảo endpoint bắt đầu bằng '/'
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${API_BASE_URL}${cleanEndpoint}`;
+};
+
 /**
  * Utility để lấy headers với token cho API calls
  * Tự động thêm Authorization header với JWT token từ session

@@ -26,7 +26,7 @@ const socketManager = new SocketManager(httpServer);
 // Middleware CORS - cho phép frontend kết nối từ domain khác
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? 'https://your-production-domain.com' 
+    ? process.env.FRONTEND_URL || 'https://your-frontend-domain.vercel.app'
     : 'http://localhost:3000',
   credentials: true
 }));
