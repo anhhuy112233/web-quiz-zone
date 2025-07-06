@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import socketClient from '../../utils/socket.js';
-import { getAuthHeaders } from '../../utils/api.js';
+import { getAuthHeaders, createApiUrl } from '../../utils/api.js';
 import { getCurrentSessionInfo, clearAllSessions } from '../../utils/sessionManager.js';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
@@ -62,7 +62,7 @@ const Monitor = () => {
   const fetchExamDetails = async () => {
     try {
       console.log('Fetching exam details for:', examId);
-      const response = await fetch(`http://localhost:5000/api/exams/${examId}`, {
+              const response = await fetch(createApiUrl(`/api/exams/${examId}`), {
         headers: getAuthHeaders()
       });
       

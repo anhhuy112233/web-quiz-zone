@@ -122,7 +122,7 @@ const Users = () => {
       setError('');
       
       // Gọi API cập nhật người dùng
-      const response = await fetch(`http://localhost:5000/api/users/${selectedUser._id}`, {
+              const response = await fetch(createApiUrl(`/api/users/${selectedUser._id}`), {
         method: 'PATCH',
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -165,7 +165,7 @@ const Users = () => {
       setError('');
       
       // Gọi API xóa người dùng
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+              const response = await fetch(createApiUrl(`/api/users/${userId}`), {
         method: 'DELETE',
         headers: getAuthHeaders()
       });

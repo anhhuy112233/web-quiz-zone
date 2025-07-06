@@ -37,7 +37,7 @@ const ExamDetailResults = () => {
   const fetchExamResults = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/results/exam/${examId}`, {
+      const response = await fetch(createApiUrl(`/api/results/exam/${examId}`), {
         headers: getAuthHeaders()
       });
       const data = await response.json();

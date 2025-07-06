@@ -121,7 +121,7 @@ const AdminExams = () => {
       setError('');
       
       // Gọi API xóa đề thi
-      const response = await fetch(`http://localhost:5000/api/exams/${examId}`, {
+              const response = await fetch(createApiUrl(`/api/exams/${examId}`), {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
