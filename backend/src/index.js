@@ -34,6 +34,16 @@ app.use(cors({
 // Middleware để parse JSON từ request body
 app.use(express.json());
 
+// Route gốc - Health check
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Exam System API is running!',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Định nghĩa các routes cho API
 app.use('/api/auth', authRoutes);      // Routes xử lý authentication
 app.use('/api/users', userRoutes);     // Routes xử lý user management
@@ -44,6 +54,18 @@ app.use('/api/results', resultRoutes); // Routes xử lý exam results
 app.get('/api/stats', (req, res) => {
   const stats = socketManager.getSystemStats();
   res.json(stats);
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
 });
 
 // Middleware xử lý lỗi (phải đặt sau tất cả routes)
