@@ -1,3 +1,8 @@
+/**
+ * Component Exams - Trang quản lý đề thi cho giáo viên
+ * Hiển thị danh sách đề thi của giáo viên với các thao tác CRUD
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
@@ -6,17 +11,26 @@ import Loading from '../../components/common/Loading';
 import ExamList from '../../components/teacher/ExamList';
 import { getAuthHeaders } from '../../utils/api';
 
+/**
+ * Exams component
+ * @returns {JSX.Element} Trang quản lý đề thi với danh sách và thao tác
+ */
 const Exams = () => {
+  // State quản lý danh sách đề thi và trạng thái
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Effect để fetch danh sách đề thi khi component mount
   useEffect(() => {
     fetchExams();
   }, []);
 
+  /**
+   * Fetch danh sách đề thi của giáo viên hiện tại
+   */
   const fetchExams = async () => {
     try {
       setLoading(true);
@@ -39,7 +53,12 @@ const Exams = () => {
     }
   };
 
+  /**
+   * Xóa đề thi với xác nhận từ người dùng
+   * @param {string} examId - ID của đề thi cần xóa
+   */
   const handleDelete = async (examId) => {
+    // Hiển thị dialog xác nhận trước khi xóa
     if (!window.confirm('Bạn có chắc chắn muốn xóa đề thi này?')) {
       return;
     }
@@ -56,6 +75,7 @@ const Exams = () => {
         throw new Error(data.message || 'Không thể xóa đề thi');
       }
 
+      // Cập nhật state sau khi xóa thành công
       setExams(exams.filter(exam => exam._id !== examId));
       setSuccess('Đề thi đã được xóa thành công');
     } catch (error) {
@@ -66,6 +86,7 @@ const Exams = () => {
     }
   };
 
+  // Hiển thị loading nếu đang tải dữ liệu
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -77,8 +98,9 @@ const Exams = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header Section */}
+        {/* ==================== HEADER SECTION ==================== */}
         <div className="text-center mb-8">
+          {/* Icon header */}
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -92,7 +114,7 @@ const Exams = () => {
           </p>
         </div>
 
-        {/* Action Button */}
+        {/* ==================== ACTION BUTTON ==================== */}
         <div className="text-center mb-8">
           <Link to="/teacher/create-exam">
             <Button className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
@@ -104,7 +126,8 @@ const Exams = () => {
           </Link>
         </div>
 
-        {/* Alerts */}
+        {/* ==================== ALERTS ==================== */}
+        {/* Hiển thị lỗi */}
         {error && (
           <div className="mb-6">
             <Alert
@@ -115,6 +138,7 @@ const Exams = () => {
           </div>
         )}
 
+        {/* Hiển thị thông báo thành công */}
         {success && (
           <div className="mb-6">
             <Alert
@@ -125,9 +149,11 @@ const Exams = () => {
           </div>
         )}
 
-        {/* Content */}
+        {/* ==================== CONTENT ==================== */}
+        {/* Hiển thị khi chưa có đề thi nào */}
         {exams.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-12 text-center">
+            {/* Icon empty state */}
             <div className="mx-auto w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
               <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -149,7 +175,9 @@ const Exams = () => {
             </Link>
           </div>
         ) : (
+          /* Hiển thị danh sách đề thi */
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            {/* Header của danh sách */}
             <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4">
               <h2 className="text-xl font-semibold text-white flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,6 +186,7 @@ const Exams = () => {
                 Danh sách bài thi ({exams.length})
               </h2>
             </div>
+            {/* Nội dung danh sách */}
             <div className="p-6">
               <ExamList
                 exams={exams}
@@ -167,7 +196,8 @@ const Exams = () => {
           </div>
         )}
 
-        {/* Loading Overlay khi đang xóa */}
+        {/* ==================== LOADING OVERLAY ==================== */}
+        {/* Overlay loading khi đang xóa đề thi */}
         {deleteLoading && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 flex items-center space-x-3 shadow-xl">

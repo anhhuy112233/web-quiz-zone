@@ -1,39 +1,54 @@
+// Import các thư viện React và React Router
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// Import các components chung
 import Header from './components/Header';
 import Footer from './components/Footer';
+import SessionSwitcher from './components/SessionSwitcher';
+import RealTimeNotification from './components/common/RealTimeNotification';
+
+// Import các pages Landing và Auth
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+
+// Import các pages cho Student
 import StudentDashboard from './pages/student/Dashboard';
-import TeacherDashboard from './pages/teacher/Dashboard';
-import AdminDashboard from './pages/admin/Dashboard';
-import Exams from './pages/teacher/Exams';
-import CreateExam from './pages/teacher/CreateExam';
-import EditExam from './pages/teacher/EditExam';
-import Monitor from './pages/teacher/Monitor';
 import StudentExams from './pages/student/Exams';
 import ExamStart from './pages/student/ExamStart';
 import ExamResult from './pages/student/ExamResult';
 import StudentResults from './pages/student/StudentResults';
 import ExamDetailResult from './pages/student/ExamDetailResult';
 import Profile from './pages/student/Profile';
+
+// Import các pages cho Teacher
+import TeacherDashboard from './pages/teacher/Dashboard';
+import Exams from './pages/teacher/Exams';
+import CreateExam from './pages/teacher/CreateExam';
+import EditExam from './pages/teacher/EditExam';
+import Monitor from './pages/teacher/Monitor';
 import TeacherProfile from './pages/teacher/Profile';
+import ExamResults from './pages/teacher/ExamResults';
+import ExamDetailResults from './pages/teacher/ExamDetailResults';
+import Students from './pages/teacher/Students';
+
+// Import các pages cho Admin
+import AdminDashboard from './pages/admin/Dashboard';
 import AdminProfile from './pages/admin/Profile';
 import AdminUsers from './pages/admin/Users';
 import AdminExams from './pages/admin/Exams';
 import AdminSettings from './pages/admin/Settings';
 import AdminReports from './pages/admin/Reports';
-import ExamResults from './pages/teacher/ExamResults';
-import ExamDetailResults from './pages/teacher/ExamDetailResults';
-import Students from './pages/teacher/Students';
-import sessionManager from './utils/sessionManager';
-import SessionSwitcher from './components/SessionSwitcher';
-import socketClient from './utils/socket.js';
-import RealTimeNotification from './components/common/RealTimeNotification';
-// import các page khác nếu có
 
-// Component chuyển hướng dashboard theo vai trò
+// Import các utilities
+import sessionManager from './utils/sessionManager';
+import socketClient from './utils/socket.js';
+
+/**
+ * Component chuyển hướng dashboard theo vai trò của user
+ * Tự động redirect user đến dashboard phù hợp với role
+ */
 const DashboardRedirect = ({ user }) => {
   if (!user) return <Navigate to="/" />;
   if (user.role === 'student') return <Navigate to="/student/dashboard" />;
@@ -42,7 +57,10 @@ const DashboardRedirect = ({ user }) => {
   return <Navigate to="/" />;
 };
 
-// Layout component với Header và Footer
+/**
+ * Layout component chung với Header và Footer
+ * Sử dụng cho tất cả các trang có đăng nhập
+ */
 const Layout = ({ children, user, onLogout, onSessionChange }) => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -55,13 +73,17 @@ const Layout = ({ children, user, onLogout, onSessionChange }) => {
   );
 };
 
+/**
+ * Component chính của ứng dụng
+ * Quản lý routing và state toàn cục
+ */
 function App() {
   // Lấy user từ SessionManager khi khởi tạo
   const [user, setUser] = useState(() => {
     return sessionManager.getCurrentUser();
   });
 
-  // Lắng nghe sự thay đổi session
+  // Lắng nghe sự thay đổi session mỗi giây
   useEffect(() => {
     const interval = setInterval(() => {
       const currentUser = sessionManager.getCurrentUser();
@@ -93,7 +115,11 @@ function App() {
     };
   }, [user]);
 
-  // Hàm cập nhật user sau khi đăng nhập thành công
+  /**
+   * Hàm xử lý đăng nhập thành công
+   * @param {Object} user - Thông tin user
+   * @param {String} token - JWT token
+   */
   const handleLogin = (user, token) => {
     if (user && typeof user === 'object' && token) {
       sessionManager.createSession(user, token);
@@ -103,18 +129,27 @@ function App() {
     }
   };
 
-  // Hàm đăng xuất
+  /**
+   * Hàm xử lý đăng xuất
+   */
   const handleLogout = () => {
     sessionManager.logout();
     setUser(null);
   };
 
-  // Hàm chuyển đổi session
+  /**
+   * Hàm xử lý chuyển đổi session
+   * @param {Object} newUser - Thông tin user mới
+   */
   const handleSessionChange = (newUser) => {
     setUser(newUser);
   };
 
-  // Protected Route
+  /**
+   * Component bảo vệ route - chỉ cho phép user đã đăng nhập và có role phù hợp
+   * @param {React.ReactNode} children - Component con
+   * @param {String} role - Role được phép truy cập
+   */
   const ProtectedRoute = ({ children, role }) => {
     if (!user) return <Navigate to="/" />;
     if (role && user.role !== role) return <Navigate to="/" />;
@@ -123,7 +158,7 @@ function App() {
 
   return (
     <Router>
-      {/* Real-time notifications */}
+      {/* Component hiển thị thông báo real-time */}
       {user && <RealTimeNotification />}
       
       <Routes>
@@ -137,7 +172,7 @@ function App() {
         {/* Dashboard redirect */}
         <Route path="/dashboard" element={<DashboardRedirect user={user} />} />
         
-        {/* Protected routes with layout */}
+        {/* Protected routes cho Student */}
         <Route path="/student/dashboard" element={
           <ProtectedRoute role="student">
             <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
@@ -146,6 +181,7 @@ function App() {
           </ProtectedRoute>
         } />
         
+        {/* Protected routes cho Teacher */}
         <Route path="/teacher/dashboard" element={
           <ProtectedRoute role="teacher">
             <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
@@ -154,6 +190,7 @@ function App() {
           </ProtectedRoute>
         } />
         
+        {/* Protected routes cho Admin */}
         <Route path="/admin/dashboard" element={
           <ProtectedRoute role="admin">
             <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
@@ -162,6 +199,7 @@ function App() {
           </ProtectedRoute>
         } />
         
+        {/* Routes quản lý bài thi cho Teacher */}
         <Route path="/teacher/exams" element={
           <ProtectedRoute role="teacher">
             <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
@@ -194,6 +232,7 @@ function App() {
           </ProtectedRoute>
         } />
         
+        {/* Routes cho Student làm bài thi */}
         <Route path="/student/exams" element={
           <ProtectedRoute role="student">
             <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>

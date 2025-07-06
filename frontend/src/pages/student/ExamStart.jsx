@@ -1,3 +1,8 @@
+/**
+ * Component ExamStart - Trang làm bài thi cho học sinh
+ * Giao diện làm bài thi với tính năng đếm ngược thời gian, lưu trạng thái và giám sát
+ */
+
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import socketClient from '../../utils/socket.js';
@@ -7,9 +12,15 @@ import Alert from '../../components/common/Alert';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 
+/**
+ * ExamStart component
+ * @returns {JSX.Element} Trang làm bài thi với giao diện câu hỏi và điều khiển
+ */
 const ExamStart = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  // State quản lý bài thi và trạng thái
   const [exam, setExam] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [current, setCurrent] = useState(0);
@@ -24,6 +35,7 @@ const ExamStart = () => {
   const [exitAction, setExitAction] = useState(null);
   const [showRestoreMessage, setShowRestoreMessage] = useState(false);
 
+  // Effect chính để khởi tạo bài thi và kết nối Socket.IO
   useEffect(() => {
     fetchExam();
     setupSocketConnection();
@@ -70,6 +82,9 @@ const ExamStart = () => {
     }
   }, [showRestoreMessage]);
 
+  /**
+   * Thiết lập kết nối Socket.IO và lắng nghe các sự kiện
+   */
   const setupSocketConnection = () => {
     // Kết nối Socket.IO
     const socket = socketClient.connect();
@@ -92,10 +107,15 @@ const ExamStart = () => {
     });
   };
 
+  /**
+   * Fetch thông tin bài thi và khởi tạo phiên làm bài
+   */
   const fetchExam = async () => {
     try {
       setLoading(true);
       console.log('Starting exam for ID:', id);
+      
+      // ==================== KIỂM TRA TRẠNG THÁI ĐÃ LƯU ====================
       
       // Kiểm tra xem có trạng thái bài thi đã lưu không
       const savedState = localStorage.getItem('examState');
@@ -126,6 +146,8 @@ const ExamStart = () => {
           }
         }
       }
+      
+      // ==================== BẮT ĐẦU BÀI THI MỚI ====================
       
       // Bắt đầu làm bài mới (gọi API start)
       const response = await fetch(`http://localhost:5000/api/exams/${id}/start`, {
@@ -166,6 +188,8 @@ const ExamStart = () => {
     }
   };
 
+  // ==================== ĐẾM NGƯỢC THỜI GIAN ====================
+  
   // Đếm ngược thời gian
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -187,6 +211,11 @@ const ExamStart = () => {
     return () => clearTimeout(timerRef.current);
   }, [timeLeft, exam, answers.length, id]);
 
+  /**
+   * Xử lý khi học sinh chọn đáp án
+   * @param {number} qIdx - Index câu hỏi
+   * @param {number} optIdx - Index đáp án được chọn
+   */
   const handleSelect = (qIdx, optIdx) => {
     console.log(`Student selecting answer: question ${qIdx}, option ${optIdx}`);
     
@@ -201,11 +230,16 @@ const ExamStart = () => {
     }
   };
 
+  /**
+   * Xử lý nộp bài thi
+   */
   const handleSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
     
     try {
+      // ==================== TÍNH ĐIỂM ====================
+      
       // Tính điểm
       let correctAnswers = 0;
       const totalQuestions = exam.questions.length;
@@ -221,6 +255,8 @@ const ExamStart = () => {
 
       // Báo cáo hoàn thành bài thi
       socketClient.examCompleted(id, score, totalQuestions, timeTaken);
+      
+      // ==================== GỬI ĐÁP ÁN LÊN SERVER ====================
       
       // Gửi đáp án lên backend
       const response = await fetch(`http://localhost:5000/api/exams/${id}/submit`, {
@@ -249,14 +285,20 @@ const ExamStart = () => {
     }
   };
 
-  // Hàm xử lý thoát trang và nộp bài
+  // ==================== XỬ LÝ THOÁT TRANG ====================
+
+  /**
+   * Hàm xử lý thoát trang và nộp bài
+   */
   const handleExitAndSubmit = async () => {
     setShowExitWarning(false);
     setExitAction('submit');
     await handleSubmit();
   };
 
-  // Hàm xử lý thoát trang không nộp bài
+  /**
+   * Hàm xử lý thoát trang không nộp bài
+   */
   const handleExitWithoutSubmit = () => {
     setShowExitWarning(false);
     setExitAction('exit');
@@ -265,20 +307,30 @@ const ExamStart = () => {
     navigate('/student/exams');
   };
 
-  // Hàm xử lý ở lại tiếp tục thi
+  /**
+   * Hàm xử lý ở lại tiếp tục thi
+   */
   const handleStayAndContinue = () => {
     setShowExitWarning(false);
     setExitAction(null);
   };
 
+  // ==================== GIÁM SÁT HOẠT ĐỘNG ====================
+  
   // Phát hiện hoạt động đáng ngờ và xử lý thoát trang
   useEffect(() => {
+    /**
+     * Xử lý khi người dùng chuyển tab
+     */
     const handleVisibilityChange = () => {
       if (document.hidden && examStarted) {
         socketClient.suspiciousActivity(id, 'Tab switching', 'Student switched to another tab');
       }
     };
 
+    /**
+     * Xử lý khi người dùng cố gắng đóng tab/trình duyệt
+     */
     const handleBeforeUnload = (e) => {
       if (examStarted && !showExitWarning) {
         // Hiển thị cảnh báo mặc định của trình duyệt
@@ -288,6 +340,9 @@ const ExamStart = () => {
       }
     };
 
+    /**
+     * Xử lý khi người dùng cố gắng quay lại trang trước
+     */
     const handlePopState = (e) => {
       if (examStarted && !showExitWarning) {
         e.preventDefault();
@@ -297,6 +352,9 @@ const ExamStart = () => {
       }
     };
 
+    /**
+     * Xử lý khi người dùng nhấn phím tắt
+     */
     const handleKeyDown = (e) => {
       // Ngăn chặn F5 và Ctrl+R
       if (examStarted && (e.key === 'F5' || (e.ctrlKey && e.key === 'r'))) {
@@ -318,6 +376,8 @@ const ExamStart = () => {
     };
   }, [examStarted, id, showExitWarning]);
 
+  // ==================== RENDER ====================
+
   if (loading) return <Loading />;
   if (error) return <Alert type="error" message={error} onClose={() => setError('')} />;
   if (!exam || !exam.questions || !Array.isArray(exam.questions)) {
@@ -326,7 +386,11 @@ const ExamStart = () => {
 
   const q = exam.questions[current];
 
-  // Format thời gian
+  /**
+   * Format thời gian từ giây sang mm:ss
+   * @param {number} s - Số giây
+   * @returns {string} Thời gian đã format
+   */
   const formatTime = (s) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
@@ -335,7 +399,7 @@ const ExamStart = () => {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
-      {/* Thông báo phục hồi trạng thái */}
+      {/* ==================== THÔNG BÁO PHỤC HỒI ==================== */}
       {showRestoreMessage && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="flex items-center">
@@ -365,7 +429,7 @@ const ExamStart = () => {
         </div>
       )}
 
-      {/* Header với thông tin bài thi */}
+      {/* ==================== HEADER BÀI THI ==================== */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
@@ -379,7 +443,7 @@ const ExamStart = () => {
         </div>
       </div>
 
-      {/* Câu hỏi hiện tại */}
+      {/* ==================== CÂU HỎI HIỆN TẠI ==================== */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">{q.question}</h2>
@@ -416,8 +480,9 @@ const ExamStart = () => {
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* ==================== NAVIGATION ==================== */}
         <div className="flex justify-between items-center">
+          {/* Nút câu trước */}
           <Button
             variant="secondary"
             onClick={() => setCurrent((c) => Math.max(0, c - 1))}
@@ -427,6 +492,7 @@ const ExamStart = () => {
             ← Câu trước
           </Button>
           
+          {/* Danh sách câu hỏi */}
           <div className="flex space-x-2">
             {exam.questions.map((_, idx) => (
               <button
@@ -445,6 +511,7 @@ const ExamStart = () => {
             ))}
           </div>
 
+          {/* Nút câu tiếp */}
           <Button
             variant="secondary"
             onClick={() => setCurrent((c) => Math.min(exam.questions.length - 1, c + 1))}
@@ -456,7 +523,7 @@ const ExamStart = () => {
         </div>
       </div>
 
-      {/* Nút nộp bài */}
+      {/* ==================== NÚT NỘP BÀI ==================== */}
       <div className="text-center">
         <Button
           variant="primary"
@@ -470,7 +537,7 @@ const ExamStart = () => {
         </Button>
       </div>
 
-      {/* Modal cảnh báo thoát trang */}
+      {/* ==================== MODAL CẢNH BÁO THOÁT TRANG ==================== */}
       <Modal
         isOpen={showExitWarning}
         onClose={handleStayAndContinue}

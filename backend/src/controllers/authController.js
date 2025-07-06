@@ -1,21 +1,31 @@
+// Import các thư viện cần thiết
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
+/**
+ * Tạo JWT token cho user
+ * @param {Object} user - Thông tin user
+ * @returns {String} JWT token
+ */
 const signToken = (user) => {
   return jwt.sign({ 
     id: user._id, 
     name: user.name, 
     role: user.role 
   }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
+    expiresIn: process.env.JWT_EXPIRES_IN  // Thời gian hết hạn token
   });
 };
 
+/**
+ * Đăng ký tài khoản mới
+ * POST /api/auth/register
+ */
 export const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Check if user already exists
+    // Kiểm tra xem email đã tồn tại chưa
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -24,18 +34,18 @@ export const register = async (req, res) => {
       });
     }
 
-    // Create new user
+    // Tạo user mới
     const user = await User.create({
       name,
       email,
       password,
-      role: role || 'student'
+      role: role || 'student'  // Mặc định là student nếu không có role
     });
 
-    // Generate token
+    // Tạo JWT token
     const token = signToken(user);
 
-    // Remove password from output
+    // Ẩn password khỏi response
     user.password = undefined;
 
     res.status(201).json({
@@ -51,11 +61,15 @@ export const register = async (req, res) => {
   }
 };
 
+/**
+ * Đăng nhập
+ * POST /api/auth/login
+ */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if email and password exist
+    // Kiểm tra email và password có được cung cấp không
     if (!email || !password) {
       return res.status(400).json({
         status: 'error',
@@ -63,8 +77,8 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check if user exists && password is correct
-    const user = await User.findOne({ email }).select('+password');
+    // Kiểm tra user có tồn tại và password có đúng không
+    const user = await User.findOne({ email }).select('+password');  // +password để lấy password field
     
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({
@@ -73,14 +87,14 @@ export const login = async (req, res) => {
       });
     }
 
-    // Update last login
+    // Cập nhật thời gian đăng nhập cuối
     user.lastLogin = Date.now();
-    await user.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });  // Không validate khi save
 
-    // Generate token
+    // Tạo JWT token
     const token = signToken(user);
 
-    // Remove password from output
+    // Ẩn password khỏi response
     user.password = undefined;
 
     res.status(200).json({
@@ -96,8 +110,13 @@ export const login = async (req, res) => {
   }
 };
 
+/**
+ * Lấy thông tin user hiện tại
+ * GET /api/auth/me
+ */
 export const getMe = async (req, res) => {
   try {
+    // req.user được set bởi middleware auth
     const user = await User.findById(req.user._id || req.user.id);
     res.status(200).json({
       status: 'success',
@@ -111,14 +130,18 @@ export const getMe = async (req, res) => {
   }
 };
 
+/**
+ * Cập nhật mật khẩu
+ * PATCH /api/auth/updatePassword
+ */
 export const updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
-    // Get user from collection
+    // Lấy user từ database (bao gồm password field)
     const user = await User.findById(req.user._id || req.user.id).select('+password');
 
-    // Check if current password is correct
+    // Kiểm tra mật khẩu hiện tại có đúng không
     if (!(await user.comparePassword(currentPassword))) {
       return res.status(401).json({
         status: 'error',
@@ -126,11 +149,11 @@ export const updatePassword = async (req, res) => {
       });
     }
 
-    // Update password
+    // Cập nhật mật khẩu mới
     user.password = newPassword;
-    await user.save();
+    await user.save();  // Sẽ tự động hash password mới
 
-    // Generate new token
+    // Tạo token mới
     const token = signToken(user);
 
     res.status(200).json({

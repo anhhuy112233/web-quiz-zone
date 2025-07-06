@@ -1,43 +1,72 @@
-// API Response Status
+/**
+ * File chứa tất cả các constants (hằng số) được sử dụng trong ứng dụng
+ * Giúp chuẩn hóa và dễ dàng quản lý các giá trị cố định
+ */
+
+// ==================== API RESPONSE STATUS ====================
+/**
+ * Trạng thái response của API
+ * Được sử dụng để chuẩn hóa format response
+ */
 export const API_STATUS = {
-  SUCCESS: 'success',
-  ERROR: 'error'
+  SUCCESS: 'success',    // Thành công
+  ERROR: 'error'         // Lỗi
 };
 
-// User Roles
+// ==================== USER ROLES ====================
+/**
+ * Các vai trò người dùng trong hệ thống
+ * Được sử dụng để phân quyền và kiểm soát truy cập
+ */
 export const USER_ROLES = {
-  STUDENT: 'student',
-  TEACHER: 'teacher',
-  ADMIN: 'admin'
+  STUDENT: 'student',    // Học sinh - có thể làm bài thi
+  TEACHER: 'teacher',    // Giáo viên - có thể tạo và quản lý đề thi
+  ADMIN: 'admin'         // Admin - có toàn quyền quản lý hệ thống
 };
 
-// Exam Status
+// ==================== EXAM STATUS ====================
+/**
+ * Trạng thái của đề thi
+ * Quản lý vòng đời của một đề thi từ lúc tạo đến lúc hoàn thành
+ */
 export const EXAM_STATUS = {
-  DRAFT: 'draft',
-  SCHEDULED: 'scheduled',
-  ACTIVE: 'active',
-  COMPLETED: 'completed'
+  DRAFT: 'draft',        // Bản nháp - đang soạn thảo
+  SCHEDULED: 'scheduled', // Đã lên lịch - chờ đến giờ thi
+  ACTIVE: 'active',      // Đang hoạt động - học sinh có thể làm bài
+  COMPLETED: 'completed' // Đã hoàn thành - hết thời gian thi
 };
 
-// Result Status
+// ==================== RESULT STATUS ====================
+/**
+ * Trạng thái của kết quả bài thi
+ * Theo dõi trạng thái làm bài của học sinh
+ */
 export const RESULT_STATUS = {
-  IN_PROGRESS: 'in_progress',
-  COMPLETED: 'completed',
-  TIMEOUT: 'timeout'
+  IN_PROGRESS: 'in_progress', // Đang làm bài
+  COMPLETED: 'completed',     // Đã hoàn thành bài thi
+  TIMEOUT: 'timeout'          // Hết thời gian làm bài
 };
 
-// HTTP Status Codes
+// ==================== HTTP STATUS CODES ====================
+/**
+ * Các mã HTTP status code chuẩn
+ * Được sử dụng để trả về response với status code phù hợp
+ */
 export const HTTP_STATUS = {
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500
+  OK: 200,                    // Thành công
+  CREATED: 201,               // Tạo mới thành công
+  BAD_REQUEST: 400,           // Yêu cầu không hợp lệ
+  UNAUTHORIZED: 401,          // Chưa đăng nhập
+  FORBIDDEN: 403,             // Không có quyền
+  NOT_FOUND: 404,             // Không tìm thấy
+  INTERNAL_SERVER_ERROR: 500  // Lỗi server
 };
 
-// Validation Messages
+// ==================== VALIDATION MESSAGES ====================
+/**
+ * Các message lỗi validation chuẩn
+ * Đảm bảo tính nhất quán trong thông báo lỗi
+ */
 export const VALIDATION_MESSAGES = {
   REQUIRED_FIELD: 'Trường này là bắt buộc',
   INVALID_EMAIL: 'Email không hợp lệ',
@@ -51,30 +80,46 @@ export const VALIDATION_MESSAGES = {
   RESULT_NOT_FOUND: 'Không tìm thấy kết quả.'
 };
 
-// File Upload
+// ==================== FILE UPLOAD ====================
+/**
+ * Cấu hình upload file
+ * Giới hạn kích thước và loại file được phép upload
+ */
 export const FILE_UPLOAD = {
-  MAX_SIZE: 5 * 1024 * 1024, // 5MB
+  MAX_SIZE: 5 * 1024 * 1024, // 5MB - kích thước tối đa
   ALLOWED_TYPES: [
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-excel',
-    'text/csv',
-    'application/csv'
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    'application/vnd.ms-excel',                                          // .xls
+    'text/csv',                                                          // .csv
+    'application/csv'                                                    // .csv
   ]
 };
 
-// Pagination
+// ==================== PAGINATION ====================
+/**
+ * Cấu hình phân trang
+ * Giới hạn số lượng item trên mỗi trang
+ */
 export const PAGINATION = {
-  DEFAULT_LIMIT: 10,
-  MAX_LIMIT: 100
+  DEFAULT_LIMIT: 10,  // Số item mặc định trên mỗi trang
+  MAX_LIMIT: 100      // Số item tối đa trên mỗi trang
 };
 
-// JWT
+// ==================== JWT ====================
+/**
+ * Cấu hình JWT (JSON Web Token)
+ * Thời gian hết hạn của token
+ */
 export const JWT = {
-  EXPIRES_IN: '7d'
+  EXPIRES_IN: '7d'  // Token hết hạn sau 7 ngày
 };
 
-// Password
+// ==================== PASSWORD ====================
+/**
+ * Cấu hình mật khẩu
+ * Độ mạnh và bảo mật của mật khẩu
+ */
 export const PASSWORD = {
-  SALT_ROUNDS: 12,
-  MIN_LENGTH: 6
+  SALT_ROUNDS: 12,  // Số vòng hash bcrypt (càng cao càng bảo mật)
+  MIN_LENGTH: 6     // Độ dài tối thiểu của mật khẩu
 }; 

@@ -1,3 +1,8 @@
+/**
+ * Component Settings - Trang cài đặt hệ thống cho admin
+ * Cho phép admin cấu hình các thông số hệ thống thi trắc nghiệm
+ */
+
 import React, { useState, useEffect } from 'react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -6,25 +11,36 @@ import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
 import { getAuthHeaders } from '../../utils/api';
 
+/**
+ * Settings component
+ * @returns {JSX.Element} Trang cài đặt hệ thống với các form cấu hình
+ */
 const Settings = () => {
+  // State quản lý cài đặt hệ thống
   const [settings, setSettings] = useState({
-    systemName: 'Hệ thống thi trắc nghiệm',
-    maxExamDuration: 120,
-    passScore: 5,
-    allowRetake: false,
-    autoSubmit: true,
-    emailNotifications: true,
-    maintenanceMode: false
+    systemName: 'Hệ thống thi trắc nghiệm',  // Tên hệ thống
+    maxExamDuration: 120,                     // Thời gian thi tối đa (phút)
+    passScore: 5,                             // Điểm đạt tối thiểu
+    allowRetake: false,                       // Cho phép thi lại
+    autoSubmit: true,                         // Tự động nộp bài
+    emailNotifications: true,                 // Thông báo qua email
+    maintenanceMode: false                    // Chế độ bảo trì
   });
+  
+  // State quản lý trạng thái loading và saving
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Effect để fetch cài đặt khi component mount
   useEffect(() => {
     fetchSettings();
   }, []);
 
+  /**
+   * Fetch cài đặt hệ thống từ API
+   */
   const fetchSettings = async () => {
     try {
       setLoading(true);
@@ -54,6 +70,10 @@ const Settings = () => {
     }
   };
 
+  /**
+   * Handler khi lưu cài đặt
+   * @param {Event} e - Event object
+   */
   const handleSaveSettings = async (e) => {
     e.preventDefault();
     
@@ -86,6 +106,11 @@ const Settings = () => {
     }
   };
 
+  /**
+   * Handler khi thay đổi giá trị input
+   * @param {string} field - Tên trường cần thay đổi
+   * @param {any} value - Giá trị mới
+   */
   const handleInputChange = (field, value) => {
     setSettings(prev => ({
       ...prev,
@@ -93,6 +118,7 @@ const Settings = () => {
     }));
   };
 
+  // Hiển thị loading nếu đang tải dữ liệu
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -104,6 +130,7 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ==================== HEADER ==================== */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             Cài đặt hệ thống
@@ -113,6 +140,7 @@ const Settings = () => {
           </p>
         </div>
 
+        {/* Hiển thị lỗi và thông báo thành công */}
         {error && (
           <Alert type="error" message={error} onClose={() => setError('')} />
         )}
@@ -122,12 +150,13 @@ const Settings = () => {
         )}
 
         <form onSubmit={handleSaveSettings}>
-          {/* General Settings */}
+          {/* ==================== GENERAL SETTINGS ==================== */}
           <Card className="mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Cài đặt chung
             </h2>
             <div className="space-y-4">
+              {/* Tên hệ thống */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Tên hệ thống
@@ -140,6 +169,7 @@ const Settings = () => {
                 />
               </div>
 
+              {/* Thời gian thi tối đa */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Thời gian thi tối đa (phút)
@@ -153,6 +183,7 @@ const Settings = () => {
                 />
               </div>
 
+              {/* Điểm đạt tối thiểu */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Điểm đạt tối thiểu (thang điểm 10)
@@ -169,12 +200,13 @@ const Settings = () => {
             </div>
           </Card>
 
-          {/* Exam Settings */}
+          {/* ==================== EXAM SETTINGS ==================== */}
           <Card className="mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Cài đặt đề thi
             </h2>
             <div className="space-y-4">
+              {/* Cho phép thi lại */}
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">Cho phép thi lại</h3>
@@ -191,6 +223,7 @@ const Settings = () => {
                 </label>
               </div>
 
+              {/* Tự động nộp bài */}
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">Tự động nộp bài</h3>
@@ -209,12 +242,13 @@ const Settings = () => {
             </div>
           </Card>
 
-          {/* Notification Settings */}
+          {/* ==================== NOTIFICATION SETTINGS ==================== */}
           <Card className="mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Cài đặt thông báo
             </h2>
             <div className="space-y-4">
+              {/* Thông báo qua email */}
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">Thông báo qua email</h3>
@@ -233,12 +267,13 @@ const Settings = () => {
             </div>
           </Card>
 
-          {/* System Maintenance */}
+          {/* ==================== SYSTEM MAINTENANCE ==================== */}
           <Card className="mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Bảo trì hệ thống
             </h2>
             <div className="space-y-4">
+              {/* Chế độ bảo trì */}
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">Chế độ bảo trì</h3>
@@ -255,6 +290,7 @@ const Settings = () => {
                 </label>
               </div>
 
+              {/* Cảnh báo khi bật chế độ bảo trì */}
               {settings.maintenanceMode && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                   <div className="flex">
@@ -280,7 +316,7 @@ const Settings = () => {
             </div>
           </Card>
 
-          {/* Action Buttons */}
+          {/* ==================== ACTION BUTTONS ==================== */}
           <div className="flex justify-end space-x-4">
             <Button
               type="button"

@@ -1,63 +1,85 @@
+/**
+ * Component Reports - Trang báo cáo thống kê cho admin
+ * Hiển thị tổng quan chi tiết về hoạt động của hệ thống thi trắc nghiệm
+ */
+
 import React, { useState, useEffect } from 'react';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import { getAuthHeaders } from '../../utils/api';
 
+/**
+ * Reports component
+ * @returns {JSX.Element} Trang báo cáo với thống kê chi tiết hệ thống
+ */
 const Reports = () => {
+  // State quản lý thống kê và trạng thái
   const [stats, setStats] = useState({
     users: {
-      total: 0,
-      students: 0,
-      teachers: 0,
-      admins: 0
+      total: 0,      // Tổng số người dùng
+      students: 0,   // Số học sinh
+      teachers: 0,   // Số giáo viên
+      admins: 0      // Số admin
     },
     exams: {
-      total: 0,
-      active: 0,
-      completed: 0,
-      draft: 0
+      total: 0,      // Tổng số đề thi
+      active: 0,     // Đề thi đang diễn ra
+      completed: 0,  // Đề thi đã kết thúc
+      draft: 0       // Đề thi nháp
     },
     results: {
-      total: 0,
-      averageScore: 0,
-      passRate: 0
+      total: 0,          // Tổng số kết quả
+      averageScore: 0,   // Điểm trung bình
+      passRate: 0        // Tỷ lệ đạt
     }
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Effect để fetch dữ liệu báo cáo khi component mount
   useEffect(() => {
     fetchReportData();
   }, []);
 
+  /**
+   * Fetch dữ liệu báo cáo từ các API
+   */
   const fetchReportData = async () => {
     try {
       setLoading(true);
       setError('');
 
-      // Fetch users data
+      // ==================== FETCH USERS DATA ====================
+      
+      // Lấy dữ liệu người dùng
       const usersResponse = await fetch('http://localhost:5000/api/users', {
         headers: getAuthHeaders()
       });
       const usersData = await usersResponse.json();
       const users = usersData.data?.users || [];
 
-      // Fetch exams data
+      // ==================== FETCH EXAMS DATA ====================
+      
+      // Lấy dữ liệu đề thi
       const examsResponse = await fetch('http://localhost:5000/api/exams', {
         headers: getAuthHeaders()
       });
       const examsData = await examsResponse.json();
       const exams = examsData.data?.exams || [];
 
-      // Fetch results data
+      // ==================== FETCH RESULTS DATA ====================
+      
+      // Lấy dữ liệu kết quả thi
       const resultsResponse = await fetch('http://localhost:5000/api/results', {
         headers: getAuthHeaders()
       });
       const resultsData = await resultsResponse.json();
       const results = resultsData.data?.results || [];
 
-      // Calculate user statistics
+      // ==================== CALCULATE USER STATISTICS ====================
+      
+      // Tính thống kê người dùng theo role
       const userStats = {
         total: users.length,
         students: users.filter(u => u.role === 'student').length,
@@ -65,7 +87,9 @@ const Reports = () => {
         admins: users.filter(u => u.role === 'admin').length
       };
 
-      // Calculate exam statistics
+      // ==================== CALCULATE EXAM STATISTICS ====================
+      
+      // Tính thống kê đề thi theo trạng thái
       const examStats = {
         total: exams.length,
         active: exams.filter(e => e.status === 'active').length,
@@ -73,7 +97,9 @@ const Reports = () => {
         draft: exams.filter(e => e.status === 'draft').length
       };
 
-      // Calculate result statistics
+      // ==================== CALCULATE RESULT STATISTICS ====================
+      
+      // Tính thống kê kết quả thi
       const resultStats = {
         total: results.length,
         averageScore: results.length > 0 ? 
@@ -82,6 +108,7 @@ const Reports = () => {
           ((results.filter(r => (r.score || 0) >= 5).length / results.length) * 100).toFixed(1) : 0
       };
 
+      // Cập nhật state với thống kê đã tính
       setStats({
         users: userStats,
         exams: examStats,
@@ -95,6 +122,7 @@ const Reports = () => {
     }
   };
 
+  // Hiển thị loading nếu đang tải dữ liệu
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -106,6 +134,7 @@ const Reports = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ==================== HEADER ==================== */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             Báo cáo hệ thống
@@ -115,16 +144,18 @@ const Reports = () => {
           </p>
         </div>
 
+        {/* Hiển thị lỗi nếu có */}
         {error && (
           <Alert type="error" message={error} onClose={() => setError('')} />
         )}
 
-        {/* User Statistics */}
+        {/* ==================== USER STATISTICS ==================== */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Thống kê người dùng
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Tổng người dùng */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -139,6 +170,7 @@ const Reports = () => {
               </div>
             </Card>
 
+            {/* Học sinh */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -153,6 +185,7 @@ const Reports = () => {
               </div>
             </Card>
 
+            {/* Giáo viên */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -167,6 +200,7 @@ const Reports = () => {
               </div>
             </Card>
 
+            {/* Quản trị viên */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -183,12 +217,13 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Exam Statistics */}
+        {/* ==================== EXAM STATISTICS ==================== */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Thống kê đề thi
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Tổng đề thi */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -203,6 +238,7 @@ const Reports = () => {
               </div>
             </Card>
 
+            {/* Đang diễn ra */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -217,6 +253,7 @@ const Reports = () => {
               </div>
             </Card>
 
+            {/* Đã kết thúc */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -231,6 +268,7 @@ const Reports = () => {
               </div>
             </Card>
 
+            {/* Nháp */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -247,12 +285,13 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Result Statistics */}
+        {/* ==================== RESULT STATISTICS ==================== */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Thống kê kết quả
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Tổng kết quả */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -267,6 +306,7 @@ const Reports = () => {
               </div>
             </Card>
 
+            {/* Điểm trung bình */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -281,6 +321,7 @@ const Reports = () => {
               </div>
             </Card>
 
+            {/* Tỷ lệ đạt */}
             <Card className="bg-white">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -297,12 +338,13 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* System Health */}
+        {/* ==================== SYSTEM HEALTH ==================== */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Tình trạng hệ thống
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Trạng thái server */}
             <Card className="bg-white">
               <div className="flex items-center justify-between">
                 <div>
@@ -316,6 +358,7 @@ const Reports = () => {
               </div>
             </Card>
 
+            {/* Bảo mật */}
             <Card className="bg-white">
               <div className="flex items-center justify-between">
                 <div>

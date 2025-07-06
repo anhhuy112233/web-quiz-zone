@@ -1,10 +1,22 @@
+// Import các thư viện React và React Router
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SessionSwitcher from "./SessionSwitcher";
 
+/**
+ * Component Header - Thanh điều hướng chính của ứng dụng
+ * Hiển thị logo, menu điều hướng và thông tin user
+ * @param {Object} user - Thông tin user hiện tại
+ * @param {Function} onLogout - Hàm xử lý đăng xuất
+ * @param {Function} onSessionChange - Hàm xử lý chuyển đổi session
+ */
 const Header = ({ user, onLogout, onSessionChange }) => {
   const navigate = useNavigate();
 
+  /**
+   * Xử lý sự kiện đăng xuất
+   * Gọi hàm onLogout và chuyển hướng về trang chủ
+   */
   const handleLogout = () => {
     onLogout();
     navigate("/");
@@ -14,6 +26,7 @@ const Header = ({ user, onLogout, onSessionChange }) => {
     <header className="bg-white shadow-md border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
+          {/* Logo và tên ứng dụng */}
           <Link
             to="/"
             className="text-xl font-bold text-blue-600 hover:text-blue-800 transition-colors"
@@ -21,15 +34,19 @@ const Header = ({ user, onLogout, onSessionChange }) => {
             QuizZone
           </Link>
 
+          {/* Menu điều hướng */}
           <nav className="flex items-center space-x-6">
             {user ? (
               <>
+                {/* Menu chung cho tất cả user đã đăng nhập */}
                 <Link
                   to="/dashboard"
                   className="text-gray-700 hover:text-blue-600 transition-colors"
                 >
                   Trang chủ
                 </Link>
+                
+                {/* Menu riêng cho Student */}
                 {user.role === "student" && (
                   <>
                     <Link
@@ -46,6 +63,8 @@ const Header = ({ user, onLogout, onSessionChange }) => {
                     </Link>
                   </>
                 )}
+                
+                {/* Menu riêng cho Teacher */}
                 {user.role === "teacher" && (
                   <>
                     <Link
@@ -62,6 +81,8 @@ const Header = ({ user, onLogout, onSessionChange }) => {
                     </Link>
                   </>
                 )}
+                
+                {/* Menu riêng cho Admin */}
                 {user.role === "admin" && (
                   <>
                     <Link
@@ -86,9 +107,10 @@ const Header = ({ user, onLogout, onSessionChange }) => {
                   </>
                 )}
 
-                {/* Session Switcher */}
+                {/* Component chuyển đổi session */}
                 <SessionSwitcher onSessionChange={onSessionChange} />
 
+                {/* Thông tin user và nút đăng xuất */}
                 <div className="flex items-center space-x-4">
                   <Link
                     to={`/${user.role}/profile`}
@@ -107,6 +129,7 @@ const Header = ({ user, onLogout, onSessionChange }) => {
               </>
             ) : (
               <>
+                {/* Menu cho user chưa đăng nhập */}
                 <Link
                   to="/login"
                   className="text-gray-700 hover:text-blue-600 transition-colors"

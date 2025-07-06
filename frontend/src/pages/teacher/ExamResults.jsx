@@ -1,3 +1,8 @@
+/**
+ * Component ExamResults - Trang quản lý kết quả thi cho giáo viên
+ * Hiển thị tổng quan kết quả thi, thống kê học sinh và danh sách đề thi
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Card from '../../components/common/Card';
@@ -6,8 +11,14 @@ import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import { getAuthHeaders } from '../../utils/api';
 
+/**
+ * ExamResults component
+ * @returns {JSX.Element} Trang quản lý kết quả với thống kê tổng quan và phân tích học sinh
+ */
 const ExamResults = () => {
   const navigate = useNavigate();
+  
+  // State quản lý dữ liệu và trạng thái
   const [loading, setLoading] = useState(true);
   const [exams, setExams] = useState([]);
   const [allResults, setAllResults] = useState([]);
@@ -16,15 +27,21 @@ const ExamResults = () => {
   const [selectedExam, setSelectedExam] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
 
+  // Effect để fetch tất cả dữ liệu khi component mount
   useEffect(() => {
     fetchAllData();
   }, []);
 
+  /**
+   * Fetch tất cả dữ liệu cần thiết cho trang kết quả
+   */
   const fetchAllData = async () => {
     try {
       setLoading(true);
       
-      // Fetch all exams
+      // ==================== FETCH EXAMS ====================
+      
+      // Lấy danh sách tất cả đề thi
       const examsResponse = await fetch('http://localhost:5000/api/exams', {
         headers: getAuthHeaders()
       });
@@ -35,14 +52,18 @@ const ExamResults = () => {
       }
       setExams(examsData.data.exams || []);
 
-      // Fetch all results
+      // ==================== FETCH RESULTS ====================
+      
+      // Lấy tất cả kết quả thi
       const resultsResponse = await fetch('http://localhost:5000/api/results', {
         headers: getAuthHeaders()
       });
       const resultsData = await resultsResponse.json();
       setAllResults(resultsResponse.ok ? (resultsData.data.results || []) : []);
 
-      // Fetch all students
+      // ==================== FETCH STUDENTS ====================
+      
+      // Lấy danh sách học sinh
       const studentsResponse = await fetch('http://localhost:5000/api/users?role=student', {
         headers: getAuthHeaders()
       });
@@ -57,18 +78,22 @@ const ExamResults = () => {
     }
   };
 
-  // Calculate overall statistics
+  /**
+   * Tính toán thống kê tổng quan và phân tích học sinh
+   * @returns {Object} Object chứa các thống kê đã tính toán
+   */
   const calculateStats = () => {
     const completedResults = allResults.filter(r => r.status === 'completed');
     const totalExams = exams.length;
     const totalStudents = students.length;
     const totalResults = completedResults.length;
     
+    // Tính điểm trung bình toàn bộ
     const averageScore = totalResults > 0 
       ? Math.round(completedResults.reduce((sum, result) => sum + result.score, 0) / totalResults)
       : 0;
 
-    // Top students (based on average score)
+    // Tính thống kê cho từng học sinh
     const studentStats = students.map(student => {
       const studentResults = completedResults.filter(r => r.user?._id === student._id);
       const avgScore = studentResults.length > 0 
@@ -77,7 +102,10 @@ const ExamResults = () => {
       return { ...student, avgScore, completedExams: studentResults.length };
     }).sort((a, b) => b.avgScore - a.avgScore);
 
+    // Top 5 học sinh xuất sắc
     const topStudents = studentStats.slice(0, 5);
+    
+    // Top 5 học sinh cần hỗ trợ (điểm < 50%)
     const needHelpStudents = studentStats.filter(s => s.avgScore < 50).slice(0, 5);
 
     return {
@@ -92,12 +120,19 @@ const ExamResults = () => {
 
   const stats = calculateStats();
 
-  // Filter exams by status
+  /**
+   * Lọc đề thi theo trạng thái
+   */
   const filteredExams = exams.filter(exam => {
     if (filterStatus === 'all') return true;
     return exam.status === filterStatus;
   });
 
+  /**
+   * Lấy màu sắc CSS cho badge trạng thái đề thi
+   * @param {string} status - Trạng thái đề thi
+   * @returns {string} CSS classes cho màu sắc
+   */
   const getStatusColor = (status) => {
     switch (status) {
       case 'scheduled':
@@ -111,6 +146,11 @@ const ExamResults = () => {
     }
   };
 
+  /**
+   * Chuyển đổi trạng thái đề thi sang tên hiển thị tiếng Việt
+   * @param {string} status - Trạng thái đề thi
+   * @returns {string} Tên hiển thị tiếng Việt
+   */
   const getStatusText = (status) => {
     switch (status) {
       case 'scheduled':
@@ -124,11 +164,15 @@ const ExamResults = () => {
     }
   };
 
+  // Hiển thị loading nếu đang tải dữ liệu
   if (loading) return <Loading />;
+  
+  // Hiển thị lỗi nếu có
   if (error) return <Alert type="error" message={error} onClose={() => setError('')} />;
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
+      {/* ==================== HEADER ==================== */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Quản lý Kết quả Thi</h1>
         <Button variant="secondary" onClick={() => navigate('/teacher/dashboard')}>
@@ -136,26 +180,33 @@ const ExamResults = () => {
         </Button>
       </div>
 
-      {/* Overall Statistics */}
+      {/* ==================== OVERALL STATISTICS ==================== */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Card tổng số đề thi */}
         <Card className="bg-blue-50">
           <div className="p-4">
             <p className="text-sm text-gray-600">Tổng đề thi</p>
             <p className="text-2xl font-bold text-blue-600">{stats.totalExams}</p>
           </div>
         </Card>
+        
+        {/* Card tổng số học sinh */}
         <Card className="bg-green-50">
           <div className="p-4">
             <p className="text-sm text-gray-600">Tổng học sinh</p>
             <p className="text-2xl font-bold text-green-600">{stats.totalStudents}</p>
           </div>
         </Card>
+        
+        {/* Card tổng số kết quả thi */}
         <Card className="bg-purple-50">
           <div className="p-4">
             <p className="text-sm text-gray-600">Kết quả thi</p>
             <p className="text-2xl font-bold text-purple-600">{stats.totalResults}</p>
           </div>
         </Card>
+        
+        {/* Card điểm trung bình toàn bộ */}
         <Card className="bg-orange-50">
           <div className="p-4">
             <p className="text-sm text-gray-600">Điểm TB toàn bộ</p>
@@ -164,8 +215,9 @@ const ExamResults = () => {
         </Card>
       </div>
 
+      {/* ==================== ANALYSIS SECTION ==================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Top Students */}
+        {/* ==================== TOP STUDENTS ==================== */}
         <div className="lg:col-span-1">
           <Card title="Top 5 Học sinh Xuất sắc">
             <div className="space-y-3">
@@ -189,7 +241,7 @@ const ExamResults = () => {
           </Card>
         </div>
 
-        {/* Students Need Help */}
+        {/* ==================== STUDENTS NEED HELP ==================== */}
         <div className="lg:col-span-1">
           <Card title="Học sinh Cần Hỗ trợ">
             <div className="space-y-3">
@@ -211,9 +263,9 @@ const ExamResults = () => {
               ))}
             </div>
           </Card>
-                        </div>
+        </div>
                         
-        {/* Quick Actions */}
+        {/* ==================== QUICK ACTIONS ==================== */}
         <div className="lg:col-span-1">
           <Card title="Thao tác Nhanh">
             <div className="space-y-3">
@@ -240,14 +292,15 @@ const ExamResults = () => {
               </Button>
             </div>
           </Card>
-                            </div>
-                        </div>
+        </div>
+      </div>
 
-      {/* Exam List */}
+      {/* ==================== EXAM LIST ==================== */}
       <div className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Danh sách Đề thi</h2>
           <div className="flex space-x-2">
+            {/* Filter dropdown */}
             <select 
               value={filterStatus} 
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -258,15 +311,17 @@ const ExamResults = () => {
               <option value="draft">Bản nháp</option>
               <option value="completed">Đã kết thúc</option>
             </select>
-                          </div>
+          </div>
         </div>
 
         <Card>
+          {/* Hiển thị khi không có đề thi */}
           {filteredExams.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">Không có đề thi nào</p>
             </div>
           ) : (
+            /* Danh sách đề thi với thống kê */
             <div className="space-y-4">
               {filteredExams.map((exam) => {
                 const examResults = allResults.filter(r => r.exam?._id === exam._id);
@@ -277,6 +332,7 @@ const ExamResults = () => {
 
                 return (
                   <div key={exam._id} className="flex items-center justify-between py-4 border-b border-gray-200 last:border-b-0">
+                    {/* Thông tin đề thi */}
                     <div className="flex-1">
                       <h3 className="text-lg font-medium text-gray-900">
                         {exam.title}
@@ -295,6 +351,8 @@ const ExamResults = () => {
                         </p>
                       </div>
                     </div>
+                    
+                    {/* Trạng thái và link xem kết quả */}
                     <div className="ml-4 flex items-center space-x-2">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(exam.status)}`}>
                         {getStatusText(exam.status)}
@@ -307,11 +365,11 @@ const ExamResults = () => {
                           Xem kết quả
                         </Link>
                       )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </Card>
       </div>

@@ -1,39 +1,60 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/**
+ * File CSS global của ứng dụng
+ * Sử dụng Tailwind CSS với các custom styles
+ */
 
-/* Custom base styles */
+/* ==================== TAILWIND CSS IMPORTS ==================== */
+
+/* Import các layer cơ bản của Tailwind CSS */
+@tailwind base;      /* Reset CSS và base styles */
+@tailwind components; /* Component classes */
+@tailwind utilities;  /* Utility classes */
+
+/* ==================== CUSTOM BASE STYLES ==================== */
+
+/* Tùy chỉnh styles cơ bản cho HTML và body */
 @layer base {
+  /* Áp dụng antialiasing cho text để mượt mà hơn */
   html {
     @apply antialiased;
   }
   
+  /* Thiết lập background và text color mặc định */
   body {
     @apply bg-gray-50 text-gray-900;
   }
 }
 
-/* Custom components */
+/* ==================== CUSTOM COMPONENTS ==================== */
+
+/* Định nghĩa các component classes tùy chỉnh */
 @layer components {
+  /* Button primary - nút chính của ứng dụng */
   .btn-primary {
     @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
   }
   
+  /* Card component - khung chứa nội dung */
   .card {
     @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
   }
   
+  /* Input field - trường nhập liệu */
   .input-field {
     @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors;
   }
 }
 
-/* Custom utilities */
+/* ==================== CUSTOM UTILITIES ==================== */
+
+/* Định nghĩa các utility classes tùy chỉnh */
 @layer utilities {
+  /* Text gradient - text với hiệu ứng gradient */
   .text-gradient {
     @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
   }
   
+  /* Glass effect - hiệu ứng kính mờ */
   .glass-effect {
     @apply bg-white/10 backdrop-blur-md border border-white/20;
   }

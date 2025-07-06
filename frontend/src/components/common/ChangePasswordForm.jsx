@@ -1,18 +1,36 @@
+/**
+ * Component ChangePasswordForm - Form đổi mật khẩu
+ * Cho phép user thay đổi mật khẩu với validation và bảo mật
+ */
+
 import React, { useState } from 'react';
 import Button from './Button';
 import Input from './Input';
 import Alert from './Alert';
 import { getAuthHeaders } from '../../utils/api';
 
+/**
+ * ChangePasswordForm component
+ * @param {Function} onSuccess - Callback khi đổi mật khẩu thành công
+ * @param {Function} onCancel - Callback khi hủy thao tác
+ * @returns {JSX.Element} Form đổi mật khẩu với validation
+ */
 const ChangePasswordForm = ({ onSuccess, onCancel }) => {
+  // State quản lý dữ liệu form
   const [formData, setFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    currentPassword: '',    // Mật khẩu hiện tại
+    newPassword: '',        // Mật khẩu mới
+    confirmPassword: ''     // Xác nhận mật khẩu mới
   });
+  
+  // State quản lý trạng thái loading và lỗi
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  /**
+   * Handler khi thay đổi giá trị input
+   * @param {Event} e - Event object
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -21,29 +39,40 @@ const ChangePasswordForm = ({ onSuccess, onCancel }) => {
     }));
   };
 
+  /**
+   * Handler khi submit form
+   * @param {Event} e - Event object
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form
+    // ==================== VALIDATION ====================
+    
+    // Kiểm tra các trường bắt buộc
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
       setError('Tất cả các trường đều bắt buộc');
       return;
     }
 
+    // Kiểm tra độ dài mật khẩu mới
     if (formData.newPassword.length < 6) {
       setError('Mật khẩu mới phải có ít nhất 6 ký tự');
       return;
     }
 
+    // Kiểm tra mật khẩu xác nhận có khớp không
     if (formData.newPassword !== formData.confirmPassword) {
       setError('Mật khẩu xác nhận không khớp');
       return;
     }
 
+    // ==================== API CALL ====================
+    
     try {
       setLoading(true);
       setError('');
       
+      // Gọi API đổi mật khẩu
       const response = await fetch('http://localhost:5000/api/users/change-password', {
         method: 'PUT',
         headers: getAuthHeaders(),
@@ -55,19 +84,24 @@ const ChangePasswordForm = ({ onSuccess, onCancel }) => {
 
       const data = await response.json();
 
+      // Kiểm tra response
       if (!response.ok) {
         throw new Error(data.message || 'Có lỗi xảy ra khi đổi mật khẩu');
       }
 
-      // Reset form
+      // ==================== SUCCESS HANDLING ====================
+      
+      // Reset form về trạng thái ban đầu
       setFormData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
       
+      // Gọi callback thành công
       onSuccess(data.message);
     } catch (err) {
+      // Xử lý lỗi
       setError(err.message);
     } finally {
       setLoading(false);
@@ -76,10 +110,12 @@ const ChangePasswordForm = ({ onSuccess, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Hiển thị lỗi nếu có */}
       {error && (
         <Alert type="error" message={error} onClose={() => setError('')} />
       )}
       
+      {/* Trường mật khẩu hiện tại */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Mật khẩu hiện tại
@@ -94,6 +130,7 @@ const ChangePasswordForm = ({ onSuccess, onCancel }) => {
         />
       </div>
 
+      {/* Trường mật khẩu mới */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Mật khẩu mới
@@ -108,6 +145,7 @@ const ChangePasswordForm = ({ onSuccess, onCancel }) => {
         />
       </div>
 
+      {/* Trường xác nhận mật khẩu mới */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Xác nhận mật khẩu mới
@@ -122,6 +160,7 @@ const ChangePasswordForm = ({ onSuccess, onCancel }) => {
         />
       </div>
 
+      {/* Các nút thao tác */}
       <div className="flex gap-3 pt-4">
         <Button
           type="submit"

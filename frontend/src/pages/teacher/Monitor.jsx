@@ -1,3 +1,8 @@
+/**
+ * Component Monitor - Trang giám sát real-time cho giáo viên
+ * Theo dõi hoạt động của học sinh trong thời gian thực khi làm bài thi
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import socketClient from '../../utils/socket.js';
@@ -7,8 +12,14 @@ import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 
+/**
+ * Monitor component
+ * @returns {JSX.Element} Trang giám sát real-time với Socket.IO và thống kê chi tiết
+ */
 const Monitor = () => {
   const { examId } = useParams();
+  
+  // State quản lý dữ liệu đề thi và trạng thái
   const [exam, setExam] = useState(null);
   const [examStats, setExamStats] = useState({
     activeStudents: 0,
@@ -23,14 +34,15 @@ const Monitor = () => {
   const [error, setError] = useState(null);
   const [socketStatus, setSocketStatus] = useState('disconnected');
   
-  // Refs để tránh duplicate events
+  // Refs để tránh duplicate events và quản lý counter
   const socketSetupRef = useRef(false);
   const activityCounterRef = useRef(0);
 
+  // Effect để setup component và socket connection
   useEffect(() => {
     fetchExamDetails();
     
-    // Chỉ setup socket một lần
+    // Chỉ setup socket một lần để tránh duplicate events
     if (!socketSetupRef.current) {
       setupSocketConnection();
       socketSetupRef.current = true;
@@ -44,6 +56,9 @@ const Monitor = () => {
     };
   }, [examId]);
 
+  /**
+   * Fetch thông tin chi tiết của đề thi
+   */
   const fetchExamDetails = async () => {
     try {
       console.log('Fetching exam details for:', examId);
@@ -66,6 +81,9 @@ const Monitor = () => {
     }
   };
 
+  /**
+   * Setup kết nối Socket.IO và lắng nghe các sự kiện real-time
+   */
   const setupSocketConnection = () => {
     console.log('Setting up Socket.IO connection...');
     
@@ -87,7 +105,9 @@ const Monitor = () => {
       setSocketStatus('connecting');
     }
 
-    // Lắng nghe sự kiện kết nối
+    // ==================== SOCKET EVENT LISTENERS ====================
+    
+    // Lắng nghe sự kiện kết nối/ngắt kết nối
     socketClient.on('connect', () => {
       console.log('Socket.IO connected!');
       setSocketStatus('connected');
@@ -98,13 +118,13 @@ const Monitor = () => {
       setSocketStatus('disconnected');
     });
 
-    // Lắng nghe các sự kiện
+    // Lắng nghe sự kiện học sinh tham gia bài thi
     socketClient.on('userJoinedExam', (data) => {
       console.log('User joined exam:', data);
       if (data.examId === examId) {
         if (data.userRole === 'student') {
           setStudents(prev => {
-            // Kiểm tra xem học sinh đã tồn tại chưa
+            // Kiểm tra xem học sinh đã tồn tại chưa để tránh duplicate
             const existingStudent = prev.find(s => s.id === data.userId);
             if (existingStudent) {
               return prev; // Không thêm duplicate
@@ -121,6 +141,7 @@ const Monitor = () => {
       }
     });
 
+    // Lắng nghe sự kiện học sinh rời bài thi
     socketClient.on('userLeftExam', (data) => {
       console.log('User left exam:', data);
       if (data.examId === examId) {
@@ -131,6 +152,7 @@ const Monitor = () => {
       }
     });
 
+    // Lắng nghe sự kiện học sinh bắt đầu làm bài
     socketClient.on('examStarted', (data) => {
       console.log('Exam started:', data);
       if (data.examId === examId) {
@@ -143,6 +165,7 @@ const Monitor = () => {
       }
     });
 
+    // Lắng nghe sự kiện học sinh nộp câu trả lời
     socketClient.on('answerSubmitted', (data) => {
       console.log('Answer submitted:', data);
       if (data.examId === examId) {
@@ -150,6 +173,7 @@ const Monitor = () => {
       }
     });
 
+    // Lắng nghe sự kiện học sinh hoàn thành bài thi
     socketClient.on('examCompleted', (data) => {
       console.log('Exam completed:', data);
       if (data.examId === examId) {
@@ -168,6 +192,7 @@ const Monitor = () => {
       }
     });
 
+    // Lắng nghe sự kiện hoạt động đáng ngờ
     socketClient.on('suspiciousActivity', (data) => {
       console.log('Suspicious activity:', data);
       if (data.examId === examId) {
@@ -175,6 +200,7 @@ const Monitor = () => {
       }
     });
 
+    // Lắng nghe sự kiện cập nhật thống kê bài thi
     socketClient.on('examStats', (data) => {
       console.log('Exam stats:', data);
       if (data.examId === examId) {
@@ -182,6 +208,7 @@ const Monitor = () => {
       }
     });
 
+    // Lắng nghe sự kiện cập nhật trạng thái bài thi
     socketClient.on('examStatus', (data) => {
       console.log('Exam status:', data);
       if (data.examId === examId) {
@@ -195,6 +222,9 @@ const Monitor = () => {
     });
   };
 
+  /**
+   * Bắt đầu giám sát bài thi
+   */
   const startMonitoring = () => {
     console.log('Starting monitoring for exam:', examId);
     socketClient.joinExam(examId);
@@ -203,6 +233,9 @@ const Monitor = () => {
     addActivity('Bắt đầu giám sát bài thi', 'success');
   };
 
+  /**
+   * Dừng giám sát bài thi
+   */
   const stopMonitoring = () => {
     console.log('Stopping monitoring for exam:', examId);
     socketClient.leaveExam(examId);
@@ -210,6 +243,11 @@ const Monitor = () => {
     addActivity('Dừng giám sát bài thi', 'warning');
   };
 
+  /**
+   * Thêm hoạt động vào danh sách với unique ID
+   * @param {string} message - Nội dung hoạt động
+   * @param {string} type - Loại hoạt động (success, warning, error, info)
+   */
   const addActivity = (message, type = 'info') => {
     // Tạo unique ID bằng cách kết hợp timestamp và counter
     activityCounterRef.current += 1;
@@ -224,6 +262,11 @@ const Monitor = () => {
     setActivities(prev => [activity, ...prev.slice(0, 49)]); // Giữ tối đa 50 hoạt động
   };
 
+  /**
+   * Lấy icon cho loại hoạt động
+   * @param {string} type - Loại hoạt động
+   * @returns {string} Emoji icon
+   */
   const getActivityIcon = (type) => {
     switch (type) {
       case 'success': return '✅';
@@ -233,6 +276,11 @@ const Monitor = () => {
     }
   };
 
+  /**
+   * Lấy màu sắc CSS cho loại hoạt động
+   * @param {string} type - Loại hoạt động
+   * @returns {string} CSS classes cho màu sắc
+   */
   const getActivityColor = (type) => {
     switch (type) {
       case 'success': return 'text-green-600 bg-green-50';
@@ -242,6 +290,9 @@ const Monitor = () => {
     }
   };
 
+  /**
+   * Test kết nối Socket.IO
+   */
   const testSocketConnection = () => {
     console.log('Testing socket connection...');
     const socket = socketClient.getSocket();
@@ -253,12 +304,18 @@ const Monitor = () => {
     }
   };
 
+  /**
+   * Debug thông tin session hiện tại
+   */
   const debugSession = () => {
     const sessionInfo = getCurrentSessionInfo();
     console.log('Current session info:', sessionInfo);
     alert(`Session Info:\nCurrent Token: ${sessionInfo.currentToken ? 'Exists' : 'Missing'}\nUser: ${sessionInfo.currentSession?.user?.name || 'Unknown'}`);
   };
 
+  /**
+   * Xóa tất cả session và reload trang
+   */
   const clearSessions = () => {
     if (confirm('Clear all sessions? You will need to login again.')) {
       clearAllSessions();
@@ -266,6 +323,7 @@ const Monitor = () => {
     }
   };
 
+  // Hiển thị loading nếu đang tải dữ liệu
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -277,6 +335,7 @@ const Monitor = () => {
     );
   }
 
+  // Hiển thị lỗi nếu có
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -292,7 +351,7 @@ const Monitor = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {/* ==================== HEADER ==================== */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
@@ -302,10 +361,13 @@ const Monitor = () => {
               <p className="text-sm text-gray-500">Socket Status: <span className={`font-semibold ${socketStatus === 'connected' ? 'text-green-600' : 'text-red-600'}`}>{socketStatus}</span></p>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Thống kê học sinh đang thi */}
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{examStats.activeStudents}</div>
                 <div className="text-sm text-gray-500">Học sinh đang thi</div>
               </div>
+              
+              {/* Các nút debug và điều khiển */}
               <button
                 onClick={debugSession}
                 className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
@@ -338,14 +400,16 @@ const Monitor = () => {
           </div>
         </div>
 
+        {/* ==================== MAIN CONTENT ==================== */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Danh sách học sinh */}
+          {/* ==================== STUDENT LIST ==================== */}
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">Danh sách học sinh</h2>
               <p className="text-gray-600 mt-1">{students.length} học sinh</p>
             </div>
             <div className="p-6">
+              {/* Hiển thị khi chưa có học sinh */}
               {students.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-gray-400 text-4xl mb-4">👥</div>
@@ -353,6 +417,7 @@ const Monitor = () => {
                   <p className="text-sm text-gray-400 mt-2">Kiểm tra console để debug</p>
                 </div>
               ) : (
+                /* Danh sách học sinh với trạng thái */
                 <div className="space-y-4">
                   {students.map((student) => (
                     <div key={student.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -387,19 +452,21 @@ const Monitor = () => {
             </div>
           </div>
 
-          {/* Hoạt động real-time */}
+          {/* ==================== REAL-TIME ACTIVITIES ==================== */}
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">Hoạt động real-time</h2>
               <p className="text-gray-600 mt-1">Cập nhật theo thời gian thực</p>
             </div>
             <div className="p-6">
+              {/* Hiển thị khi chưa có hoạt động */}
               {activities.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-gray-400 text-4xl mb-4">📊</div>
                   <p className="text-gray-500">Chưa có hoạt động nào</p>
                 </div>
               ) : (
+                /* Danh sách hoạt động với scroll */
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {activities.map((activity) => (
                     <div
@@ -423,26 +490,33 @@ const Monitor = () => {
           </div>
         </div>
 
-        {/* Thống kê chi tiết */}
+        {/* ==================== DETAILED STATISTICS ==================== */}
         <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Thống kê chi tiết</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Học sinh đang thi */}
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-3xl font-bold text-blue-600">{examStats.activeStudents}</div>
               <div className="text-sm text-gray-600">Học sinh đang thi</div>
             </div>
+            
+            {/* Đã hoàn thành */}
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-3xl font-bold text-green-600">
                 {students.filter(s => s.examCompleted).length}
               </div>
               <div className="text-sm text-gray-600">Đã hoàn thành</div>
             </div>
+            
+            {/* Đang làm bài */}
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <div className="text-3xl font-bold text-yellow-600">
                 {students.filter(s => s.examStarted && !s.examCompleted).length}
               </div>
               <div className="text-sm text-gray-600">Đang làm bài</div>
             </div>
+            
+            {/* Chờ bắt đầu */}
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <div className="text-3xl font-bold text-purple-600">
                 {students.filter(s => !s.examStarted).length}

@@ -1,19 +1,32 @@
+/**
+ * Component Landing - Trang chủ landing page
+ * Trang giới thiệu sản phẩm QuizZone với các tính năng và thông tin marketing
+ */
+
 import React from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/common/Button";
 
+/**
+ * Landing component
+ * Trang landing page chính của ứng dụng với các section marketing
+ * @returns {JSX.Element} Landing page với hero, features, và CTA sections
+ */
 const Landing = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
+      {/* ==================== HEADER ==================== */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
+            {/* Logo */}
             <div className="text-2xl font-bold text-blue-600">
               <Link to="/">
                 QuizZone
               </Link>
             </div>
+            
+            {/* Navigation buttons */}
             <div className="flex items-center space-x-4">
               <Link
                 to="/login"
@@ -29,10 +42,11 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* ==================== HERO SECTION ==================== */}
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <div className="mb-8">
+            {/* Main headline */}
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
               Nền tảng
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
@@ -41,11 +55,15 @@ const Landing = () => {
               </span>
               Hiện Đại
             </h1>
+            
+            {/* Subtitle */}
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               QuizZone - Giải pháp toàn diện cho việc tạo, quản lý và tham gia
               các bài thi trắc nghiệm trực tuyến. Dành cho giáo viên, học sinh
               và tổ chức giáo dục.
             </p>
+            
+            {/* CTA buttons */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link to="/register">
                 <Button
@@ -70,20 +88,25 @@ const Landing = () => {
             </div>
           </div>
 
-          {/* Hero Image/Stats */}
+          {/* ==================== STATISTICS CARDS ==================== */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+            {/* Bài thi đã tạo */}
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <div className="text-3xl font-bold text-blue-600 mb-2">
                 10,000+
               </div>
               <div className="text-gray-600">Bài thi đã tạo</div>
             </div>
+            
+            {/* Học sinh tham gia */}
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <div className="text-3xl font-bold text-green-600 mb-2">
                 50,000+
               </div>
               <div className="text-gray-600">Học sinh tham gia</div>
             </div>
+            
+            {/* Uptime hệ thống */}
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <div className="text-3xl font-bold text-purple-600 mb-2">
                 99.9%
@@ -94,9 +117,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* ==================== FEATURES SECTION ==================== */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
+          {/* Section header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Tính năng nổi bật
@@ -107,8 +131,9 @@ const Landing = () => {
             </p>
           </div>
 
+          {/* Features grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
+            {/* Feature 1: Tạo đề thi dễ dàng */}
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-8">
               <div className="text-4xl mb-4">📝</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -120,7 +145,7 @@ const Landing = () => {
               </p>
             </div>
 
-            {/* Feature 2 */}
+            {/* Feature 2: Giám sát thời gian thực */}
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-8">
               <div className="text-4xl mb-4">⏱️</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -132,7 +157,7 @@ const Landing = () => {
               </p>
             </div>
 
-            {/* Feature 3 */}
+            {/* Feature 3: Báo cáo chi tiết */}
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-8">
               <div className="text-4xl mb-4">📊</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -144,7 +169,7 @@ const Landing = () => {
               </p>
             </div>
 
-            {/* Feature 4 */}
+            {/* Feature 4: Bảo mật cao */}
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-8">
               <div className="text-4xl mb-4">🔒</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -156,7 +181,7 @@ const Landing = () => {
               </p>
             </div>
 
-            {/* Feature 5 */}
+            {/* Feature 5: Responsive design */}
             <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-8">
               <div className="text-4xl mb-4">📱</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -168,7 +193,7 @@ const Landing = () => {
               </p>
             </div>
 
-            {/* Feature 6 */}
+            {/* Feature 6: Hiệu suất cao */}
             <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-8">
               <div className="text-4xl mb-4">🚀</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -183,9 +208,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* How it works */}
+      {/* ==================== HOW IT WORKS SECTION ==================== */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
+          {/* Section header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Cách hoạt động
@@ -195,7 +221,9 @@ const Landing = () => {
             </p>
           </div>
 
+          {/* Steps grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Step 1: Đăng ký tài khoản */}
             <div className="text-center">
               <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
                 1
@@ -209,6 +237,7 @@ const Landing = () => {
               </p>
             </div>
 
+            {/* Step 2: Tạo hoặc tham gia thi */}
             <div className="text-center">
               <div className="bg-green-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
                 2
@@ -222,6 +251,7 @@ const Landing = () => {
               </p>
             </div>
 
+            {/* Step 3: Xem kết quả */}
             <div className="text-center">
               <div className="bg-purple-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
                 3
@@ -238,7 +268,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* ==================== CTA SECTION ==================== */}
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
@@ -247,6 +277,8 @@ const Landing = () => {
           <p className="text-xl text-blue-100 mb-8">
             Tham gia cùng hàng nghìn giáo viên và học sinh đang sử dụng QuizZone
           </p>
+          
+          {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link to="/register">
               <Button
@@ -272,10 +304,12 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ==================== FOOTER ==================== */}
       <footer className="bg-gray-900 text-white py-12 px-4">
         <div className="max-w-7xl mx-auto">
+          {/* Footer content grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Company info */}
             <div>
               <h3 className="text-xl font-bold mb-4">QuizZone</h3>
               <p className="text-gray-400">
@@ -284,6 +318,7 @@ const Landing = () => {
               </p>
             </div>
 
+            {/* Product links */}
             <div>
               <h4 className="font-semibold mb-4">Sản phẩm</h4>
               <ul className="space-y-2 text-gray-400">
@@ -305,6 +340,7 @@ const Landing = () => {
               </ul>
             </div>
 
+            {/* Support links */}
             <div>
               <h4 className="font-semibold mb-4">Hỗ trợ</h4>
               <ul className="space-y-2 text-gray-400">
@@ -326,6 +362,7 @@ const Landing = () => {
               </ul>
             </div>
 
+            {/* Company links */}
             <div>
               <h4 className="font-semibold mb-4">Công ty</h4>
               <ul className="space-y-2 text-gray-400">
@@ -348,6 +385,7 @@ const Landing = () => {
             </div>
           </div>
 
+          {/* Copyright */}
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2024 QuizZone. Tất cả quyền được bảo lưu.</p>
           </div>

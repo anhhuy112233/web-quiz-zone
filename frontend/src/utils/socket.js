@@ -1,16 +1,24 @@
+// Import thư viện Socket.IO client và sessionManager
 import { io } from 'socket.io-client';
 import sessionManager from './sessionManager.js';
 
+/**
+ * Class quản lý kết nối Socket.IO client
+ * Xử lý kết nối real-time với server
+ */
 class SocketClient {
   constructor() {
-    this.socket = null;
-    this.isConnected = false;
-    this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 1000;
+    this.socket = null;                    // Socket instance
+    this.isConnected = false;              // Trạng thái kết nối
+    this.reconnectAttempts = 0;            // Số lần thử kết nối lại
+    this.maxReconnectAttempts = 5;         // Số lần thử tối đa
+    this.reconnectDelay = 1000;            // Thời gian delay giữa các lần thử (ms)
   }
 
-  // Kết nối đến Socket.IO server
+  /**
+   * Kết nối đến Socket.IO server
+   * @returns {Object|null} Socket instance hoặc null nếu thất bại
+   */
   connect() {
     if (this.socket && this.isConnected) {
       return this.socket;
@@ -36,15 +44,16 @@ class SocketClient {
         }
       }
 
+      // Tạo kết nối Socket.IO với cấu hình
       this.socket = io('http://localhost:5000', {
         auth: {
-          token: token
+          token: token  // Gửi token để xác thực
         },
-        transports: ['websocket', 'polling'],
-        reconnection: true,
+        transports: ['websocket', 'polling'],  // Ưu tiên websocket, fallback polling
+        reconnection: true,                     // Tự động kết nối lại
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: this.reconnectDelay,
-        timeout: 20000
+        timeout: 20000  // Timeout 20 giây
       });
 
       this.setupEventHandlers();
@@ -55,21 +64,26 @@ class SocketClient {
     }
   }
 
-  // Thiết lập các event handlers
+  /**
+   * Thiết lập các event handlers cho Socket.IO
+   */
   setupEventHandlers() {
     if (!this.socket) return;
 
+    // Xử lý khi kết nối thành công
     this.socket.on('connect', () => {
       console.log('Connected to Socket.IO server');
       this.isConnected = true;
       this.reconnectAttempts = 0;
     });
 
+    // Xử lý khi ngắt kết nối
     this.socket.on('disconnect', (reason) => {
       console.log('Disconnected from Socket.IO server:', reason);
       this.isConnected = false;
     });
 
+    // Xử lý lỗi kết nối
     this.socket.on('connect_error', (error) => {
       console.error('Socket.IO connection error:', error);
       this.isConnected = false;
@@ -80,22 +94,27 @@ class SocketClient {
       }
     });
 
+    // Xử lý khi kết nối lại thành công
     this.socket.on('reconnect', (attemptNumber) => {
       console.log('Reconnected to Socket.IO server after', attemptNumber, 'attempts');
       this.isConnected = true;
       this.reconnectAttempts = 0;
     });
 
+    // Xử lý lỗi khi kết nối lại
     this.socket.on('reconnect_error', (error) => {
       console.error('Socket.IO reconnection error:', error);
     });
 
+    // Xử lý khi kết nối lại thất bại hoàn toàn
     this.socket.on('reconnect_failed', () => {
       console.error('Socket.IO reconnection failed');
     });
   }
 
-  // Ngắt kết nối
+  /**
+   * Ngắt kết nối Socket.IO
+   */
   disconnect() {
     if (this.socket) {
       this.socket.disconnect();
@@ -104,7 +123,10 @@ class SocketClient {
     }
   }
 
-  // Tham gia phòng thi
+  /**
+   * Tham gia phòng thi
+   * @param {String} examId - ID của bài thi
+   */
   joinExam(examId) {
     if (this.socket && this.isConnected) {
       this.socket.emit('joinExam', examId);
@@ -112,7 +134,10 @@ class SocketClient {
     }
   }
 
-  // Rời phòng thi
+  /**
+   * Rời phòng thi
+   * @param {String} examId - ID của bài thi
+   */
   leaveExam(examId) {
     if (this.socket && this.isConnected) {
       this.socket.emit('leaveExam', examId);
@@ -120,7 +145,11 @@ class SocketClient {
     }
   }
 
-  // Bắt đầu làm bài
+  /**
+   * Bắt đầu làm bài thi
+   * @param {String} examId - ID của bài thi
+   * @param {Date} startTime - Thời gian bắt đầu
+   */
   examStarted(examId, startTime) {
     if (this.socket && this.isConnected) {
       this.socket.emit('examStarted', {
@@ -130,7 +159,13 @@ class SocketClient {
     }
   }
 
-  // Nộp câu trả lời
+  /**
+   * Nộp câu trả lời
+   * @param {String} examId - ID của bài thi
+   * @param {String} questionId - ID của câu hỏi
+   * @param {Number} answer - Đáp án được chọn (0-3)
+   * @param {Number} timeSpent - Thời gian làm câu hỏi (giây)
+   */
   submitAnswer(examId, questionId, answer, timeSpent) {
     if (this.socket && this.isConnected) {
       this.socket.emit('submitAnswer', {
@@ -142,7 +177,13 @@ class SocketClient {
     }
   }
 
-  // Hoàn thành bài thi
+  /**
+   * Hoàn thành bài thi
+   * @param {String} examId - ID của bài thi
+   * @param {Number} score - Điểm số
+   * @param {Number} totalQuestions - Tổng số câu hỏi
+   * @param {Number} timeTaken - Thời gian làm bài (phút)
+   */
   examCompleted(examId, score, totalQuestions, timeTaken) {
     if (this.socket && this.isConnected) {
       this.socket.emit('examCompleted', {
@@ -154,7 +195,11 @@ class SocketClient {
     }
   }
 
-  // Cập nhật thời gian
+  /**
+   * Cập nhật thời gian còn lại
+   * @param {String} examId - ID của bài thi
+   * @param {Number} remainingTime - Thời gian còn lại (giây)
+   */
   timeUpdate(examId, remainingTime) {
     if (this.socket && this.isConnected) {
       this.socket.emit('timeUpdate', {
@@ -164,7 +209,12 @@ class SocketClient {
     }
   }
 
-  // Báo cáo hoạt động đáng ngờ
+  /**
+   * Báo cáo hoạt động đáng ngờ
+   * @param {String} examId - ID của bài thi
+   * @param {String} activity - Loại hoạt động
+   * @param {Object} details - Chi tiết hoạt động
+   */
   suspiciousActivity(examId, activity, details) {
     if (this.socket && this.isConnected) {
       this.socket.emit('suspiciousActivity', {
@@ -175,28 +225,42 @@ class SocketClient {
     }
   }
 
-  // Bắt đầu giám sát (cho giáo viên)
+  /**
+   * Bắt đầu giám sát (cho giáo viên)
+   * @param {String} examId - ID của bài thi
+   */
   startMonitoring(examId) {
     if (this.socket && this.isConnected) {
       this.socket.emit('startMonitoring', examId);
     }
   }
 
-  // Lắng nghe sự kiện
+  /**
+   * Lắng nghe sự kiện từ server
+   * @param {String} event - Tên sự kiện
+   * @param {Function} callback - Hàm xử lý sự kiện
+   */
   on(event, callback) {
     if (this.socket) {
       this.socket.on(event, callback);
     }
   }
 
-  // Hủy lắng nghe sự kiện
+  /**
+   * Hủy lắng nghe sự kiện
+   * @param {String} event - Tên sự kiện
+   * @param {Function} callback - Hàm xử lý sự kiện
+   */
   off(event, callback) {
     if (this.socket) {
       this.socket.off(event, callback);
     }
   }
 
-  // Kiểm tra trạng thái kết nối
+  /**
+   * Kiểm tra trạng thái kết nối
+   * @returns {Boolean} true nếu đã kết nối, false nếu chưa
+   */
   isSocketConnected() {
     return this.isConnected && this.socket && this.socket.connected;
   }

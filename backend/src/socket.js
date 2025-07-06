@@ -1,38 +1,53 @@
+// Import các thư viện cần thiết
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 
+/**
+ * Class quản lý Socket.IO cho hệ thống thi trực tuyến
+ * Xử lý các kết nối real-time giữa client và server
+ */
 class SocketManager {
   constructor(server) {
+    // Khởi tạo Socket.IO server với cấu hình CORS
     this.io = new Server(server, {
       cors: {
-        origin: "http://localhost:3000",
+        origin: "http://localhost:3000",  // Cho phép frontend kết nối
         methods: ["GET", "POST"]
       }
     });
     
+    // Lưu trữ thông tin các phòng thi và session của user
     this.examRooms = new Map(); // Lưu trữ các phòng thi
     this.userSessions = new Map(); // Lưu trữ session của user
     
+    // Thiết lập middleware và event handlers
     this.setupMiddleware();
     this.setupEventHandlers();
   }
 
-  // Middleware để xác thực token
+  /**
+   * Middleware để xác thực token JWT khi kết nối Socket.IO
+   * Đảm bảo chỉ user đã đăng nhập mới có thể kết nối
+   */
   setupMiddleware() {
     this.io.use((socket, next) => {
+      // Lấy token từ handshake auth
       const token = socket.handshake.auth.token;
       
       console.log('Socket middleware - Token received:', !!token);
       
+      // Kiểm tra có token không
       if (!token) {
         console.log('Socket middleware - No token provided');
         return next(new Error('Authentication error'));
       }
 
       try {
+        // Verify JWT token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log('Socket middleware - JWT decoded:', decoded);
         
+        // Gán thông tin user vào socket
         socket.userId = decoded.id;
         socket.userRole = decoded.role;
         socket.userName = decoded.name;
@@ -51,7 +66,7 @@ class SocketManager {
           console.error('Socket middleware - userRole is missing from JWT:', decoded);
         }
         
-        next();
+        next();  // Cho phép kết nối
       } catch (error) {
         console.log('Socket middleware - Token verification failed:', error.message);
         return next(new Error('Authentication error'));
@@ -59,7 +74,10 @@ class SocketManager {
     });
   }
 
-  // Xử lý các sự kiện Socket.IO
+  /**
+   * Thiết lập các event handlers cho Socket.IO
+   * Xử lý các sự kiện từ client
+   */
   setupEventHandlers() {
     this.io.on('connection', (socket) => {
       console.log(`User connected: ${socket.userName} (${socket.userRole}) - Socket ID: ${socket.id}`);
@@ -137,26 +155,31 @@ class SocketManager {
     });
   }
 
-  // Xử lý tham gia phòng thi
+  /**
+   * Xử lý khi user tham gia phòng thi
+   * @param {Object} socket - Socket instance
+   * @param {String} examId - ID của bài thi
+   */
   handleJoinExam(socket, examId) {
     const roomName = `exam_${examId}`;
-    socket.join(roomName);
+    socket.join(roomName);  // Tham gia vào phòng Socket.IO
     
     console.log(`User ${socket.userName} joined room: ${roomName}`);
     
-    // Lưu thông tin phòng thi
+    // Tạo phòng thi mới nếu chưa tồn tại
     if (!this.examRooms.has(examId)) {
       this.examRooms.set(examId, {
-        students: new Set(),
-        teachers: new Set(),
-        startTime: null,
-        endTime: null
+        students: new Set(),  // Danh sách học sinh trong phòng
+        teachers: new Set(),  // Danh sách giáo viên trong phòng
+        startTime: null,      // Thời gian bắt đầu thi
+        endTime: null         // Thời gian kết thúc thi
       });
       console.log(`Created new exam room: ${examId}`);
     }
     
     const examRoom = this.examRooms.get(examId);
     
+    // Thêm user vào danh sách tương ứng theo role
     if (socket.userRole === 'student') {
       examRoom.students.add(socket.userId);
       console.log(`Student ${socket.userName} added to exam ${examId}. Total students: ${examRoom.students.size}`);
@@ -165,7 +188,7 @@ class SocketManager {
       console.log(`Teacher ${socket.userName} added to exam ${examId}. Total teachers: ${examRoom.teachers.size}`);
     }
 
-    // Thông báo cho tất cả trong phòng
+    // Thông báo cho tất cả trong phòng về user mới tham gia
     const eventData = {
       userId: socket.userId,
       userName: socket.userName,
@@ -181,13 +204,18 @@ class SocketManager {
     this.updateExamStats(examId);
   }
 
-  // Xử lý rời phòng thi
+  /**
+   * Xử lý khi user rời phòng thi
+   * @param {Object} socket - Socket instance
+   * @param {String} examId - ID của bài thi
+   */
   handleLeaveExam(socket, examId) {
     const roomName = `exam_${examId}`;
-    socket.leave(roomName);
+    socket.leave(roomName);  // Rời khỏi phòng Socket.IO
     
     console.log(`User ${socket.userName} left room: ${roomName}`);
     
+    // Xóa user khỏi danh sách phòng thi
     const examRoom = this.examRooms.get(examId);
     if (examRoom) {
       if (socket.userRole === 'student') {
@@ -213,7 +241,11 @@ class SocketManager {
     this.updateExamStats(examId);
   }
 
-  // Xử lý bắt đầu làm bài
+  /**
+   * Xử lý khi user bắt đầu làm bài
+   * @param {Object} socket - Socket instance
+   * @param {Object} data - Dữ liệu bao gồm examId và startTime
+   */
   handleExamStarted(socket, data) {
     const { examId, startTime } = data;
     const roomName = `exam_${examId}`;
@@ -242,7 +274,11 @@ class SocketManager {
     this.updateExamStats(examId);
   }
 
-  // Xử lý nộp câu trả lời
+  /**
+   * Xử lý khi user nộp câu trả lời
+   * @param {Object} socket - Socket instance
+   * @param {Object} data - Dữ liệu bao gồm examId, questionId, answer và timeSpent
+   */
   handleSubmitAnswer(socket, data) {
     const { examId, questionId, answer, timeSpent } = data;
     const roomName = `exam_${examId}`;
@@ -264,7 +300,11 @@ class SocketManager {
     this.io.to(roomName).emit('answerSubmitted', eventData);
   }
 
-  // Xử lý hoàn thành bài thi
+  /**
+   * Xử lý khi user hoàn thành bài thi
+   * @param {Object} socket - Socket instance
+   * @param {Object} data - Dữ liệu bao gồm examId, score, totalQuestions và timeTaken
+   */
   handleExamCompleted(socket, data) {
     const { examId, score, totalQuestions, timeTaken } = data;
     const roomName = `exam_${examId}`;
@@ -289,7 +329,11 @@ class SocketManager {
     this.updateExamStats(examId);
   }
 
-  // Xử lý cập nhật thời gian
+  /**
+   * Xử lý khi có cập nhật thời gian cho bài thi
+   * @param {Object} socket - Socket instance
+   * @param {Object} data - Dữ liệu bao gồm examId và remainingTime
+   */
   handleTimeUpdate(socket, data) {
     const { examId, remainingTime } = data;
     const roomName = `exam_${examId}`;
@@ -306,7 +350,11 @@ class SocketManager {
     socket.to(roomName).emit('timeUpdate', eventData);
   }
 
-  // Xử lý hoạt động đáng ngờ
+  /**
+   * Xử lý khi phát hiện hoạt động đáng ngờ
+   * @param {Object} socket - Socket instance
+   * @param {Object} data - Dữ liệu bao gồm examId, activity và details
+   */
   handleSuspiciousActivity(socket, data) {
     const { examId, activity, details } = data;
     const roomName = `exam_${examId}`;
@@ -327,7 +375,11 @@ class SocketManager {
     this.io.to(roomName).emit('suspiciousActivity', eventData);
   }
 
-  // Xử lý bắt đầu giám sát (cho giáo viên)
+  /**
+   * Xử lý khi giáo viên bắt đầu giám sát phòng thi
+   * @param {Object} socket - Socket instance
+   * @param {String} examId - ID của bài thi
+   */
   handleStartMonitoring(socket, examId) {
     const roomName = `exam_${examId}`;
     
@@ -364,7 +416,10 @@ class SocketManager {
     }
   }
 
-  // Xử lý ngắt kết nối
+  /**
+   * Xử lý khi ngắt kết nối Socket.IO
+   * @param {Object} socket - Socket instance
+   */
   handleDisconnect(socket) {
     console.log(`User disconnected: ${socket.userName}`);
     
@@ -388,7 +443,10 @@ class SocketManager {
     });
   }
 
-  // Cập nhật thống kê phòng thi
+  /**
+   * Cập nhật thống kê phòng thi
+   * @param {String} examId - ID của bài thi
+   */
   updateExamStats(examId) {
     const examRoom = this.examRooms.get(examId);
     if (examRoom) {
@@ -408,7 +466,11 @@ class SocketManager {
     }
   }
 
-  // Thông báo trạng thái user
+  /**
+   * Thông báo trạng thái user cho tất cả client
+   * @param {String} userId - ID của user
+   * @param {String} status - Trạng thái của user (online/offline)
+   */
   broadcastUserStatus(userId, status) {
     const eventData = {
       userId: userId,
@@ -420,7 +482,11 @@ class SocketManager {
     this.io.emit('userStatus', eventData);
   }
 
-  // Gửi thông báo cho tất cả
+  /**
+   * Gửi thông báo cho tất cả client
+   * @param {String} message - Nội dung thông báo
+   * @param {String} type - Loại thông báo (info, success, warning, error)
+   */
   broadcastNotification(message, type = 'info') {
     const eventData = {
       message: message,
@@ -432,7 +498,12 @@ class SocketManager {
     this.io.emit('notification', eventData);
   }
 
-  // Gửi thông báo cho role cụ thể
+  /**
+   * Gửi thông báo cho role cụ thể
+   * @param {String} role - Role của user (student, teacher, admin)
+   * @param {String} event - Tên sự kiện Socket.IO
+   * @param {Object} data - Dữ liệu cần gửi
+   */
   broadcastToRole(role, event, data) {
     const eventData = {
       ...data,
@@ -444,7 +515,10 @@ class SocketManager {
     this.io.emit(event, eventData);
   }
 
-  // Lấy thống kê hệ thống
+  /**
+   * Lấy thống kê hệ thống
+   * @returns {Object} - Thống kê hiện tại
+   */
   getSystemStats() {
     const stats = {
       connectedUsers: this.userSessions.size,

@@ -1,3 +1,8 @@
+/**
+ * Component StudentResults - Trang kết quả thi tổng hợp cho học sinh
+ * Hiển thị thống kê tổng quan, lịch sử thi và phân tích hiệu suất học tập
+ */
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Card from "../../components/common/Card";
@@ -6,8 +11,14 @@ import Loading from "../../components/common/Loading";
 import Alert from "../../components/common/Alert";
 import { getAuthHeaders } from "../../utils/api";
 
+/**
+ * StudentResults component
+ * @returns {JSX.Element} Trang kết quả thi với thống kê và lịch sử chi tiết
+ */
 const StudentResults = () => {
   const navigate = useNavigate();
+  
+  // State quản lý dữ liệu và trạng thái
   const [loading, setLoading] = useState(true);
   const [results, setResults] = useState([]);
   const [exams, setExams] = useState([]);
@@ -17,22 +28,26 @@ const StudentResults = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [resultsPerPage] = useState(5);
 
+  // Effect để fetch dữ liệu khi component mount
   useEffect(() => {
     fetchAllData();
   }, []);
 
+  /**
+   * Fetch tất cả dữ liệu cần thiết cho trang kết quả
+   */
   const fetchAllData = async () => {
     try {
       setLoading(true);
 
-      // Fetch student's results
+      // Fetch kết quả thi của học sinh
       const resultsResponse = await fetch("http://localhost:5000/api/results", {
         headers: getAuthHeaders(),
       });
       const resultsData = await resultsResponse.json();
       setResults(resultsResponse.ok ? resultsData.data.results || [] : []);
 
-      // Fetch available exams for comparison
+      // Fetch danh sách đề thi để so sánh
       const examsResponse = await fetch("http://localhost:5000/api/exams", {
         headers: getAuthHeaders(),
       });
@@ -46,12 +61,16 @@ const StudentResults = () => {
     }
   };
 
-  // Calculate student statistics
+  /**
+   * Tính toán thống kê tổng quan của học sinh
+   * @returns {Object} Các thống kê bao gồm điểm trung bình, thành tích tốt nhất, xu hướng
+   */
   const calculateStats = () => {
     const completedResults = results.filter((r) => r.status === "completed");
     const totalExams = exams.length;
     const completedExams = completedResults.length;
 
+    // Tính điểm trung bình
     const averageScore =
       completedExams > 0
         ? Math.round(
@@ -60,7 +79,7 @@ const StudentResults = () => {
           )
         : 0;
 
-    // Best and worst scores
+    // Tìm kết quả tốt nhất và tệ nhất
     const bestResult =
       completedResults.length > 0
         ? completedResults.reduce((best, current) =>
@@ -75,7 +94,7 @@ const StudentResults = () => {
           )
         : null;
 
-    // Recent performance trend (last 5 exams)
+    // Tính xu hướng hiệu suất gần đây (5 bài thi cuối)
     const recentResults = completedResults
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5);
@@ -88,7 +107,7 @@ const StudentResults = () => {
           )
         : 0;
 
-    // Performance improvement
+    // Tính mức độ cải thiện
     const improvement =
       recentAverage > averageScore ? recentAverage - averageScore : 0;
 
@@ -105,40 +124,48 @@ const StudentResults = () => {
 
   const stats = calculateStats();
 
-  // Filter results by status
+  // Lọc kết quả theo trạng thái
   const filteredResults = results.filter((result) => {
     if (filterStatus === "all") return true;
     return result.status === filterStatus;
   });
 
-  // Pagination logic
+  // Logic phân trang
   const totalPages = Math.ceil(filteredResults.length / resultsPerPage);
   const startIndex = (currentPage - 1) * resultsPerPage;
   const endIndex = startIndex + resultsPerPage;
   const currentResults = filteredResults.slice(startIndex, endIndex);
 
-  // Reset to page 1 when filter changes
+  // Reset về trang 1 khi thay đổi filter
   useEffect(() => {
     setCurrentPage(1);
   }, [filterStatus]);
 
+  /**
+   * Xử lý thay đổi trang
+   * @param {number} page - Số trang muốn chuyển đến
+   */
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
+  /**
+   * Tạo danh sách số trang với phân trang thông minh
+   * @returns {Array} Mảng các số trang và dấu "..."
+   */
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
 
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is small
+      // Hiển thị tất cả trang nếu tổng số ít
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Show smart pagination
+      // Hiển thị phân trang thông minh
       if (currentPage <= 3) {
-        // Near start: show 1,2,3,4,5...last
+        // Gần đầu: hiển thị 1,2,3,4,5...cuối
         for (let i = 1; i <= 5; i++) {
           pages.push(i);
         }
@@ -147,14 +174,14 @@ const StudentResults = () => {
           pages.push(totalPages);
         }
       } else if (currentPage >= totalPages - 2) {
-        // Near end: show 1...last-4,last-3,last-2,last-1,last
+        // Gần cuối: hiển thị 1...cuối-4,cuối-3,cuối-2,cuối-1,cuối
         pages.push(1);
         pages.push("...");
         for (let i = totalPages - 4; i <= totalPages; i++) {
           pages.push(i);
         }
       } else {
-        // Middle: show 1...current-1,current,current+1...last
+        // Ở giữa: hiển thị 1...hiện tại-1,hiện tại,hiện tại+1...cuối
         pages.push(1);
         pages.push("...");
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
@@ -168,6 +195,11 @@ const StudentResults = () => {
     return pages;
   };
 
+  /**
+   * Lấy màu sắc CSS cho badge trạng thái
+   * @param {string} status - Trạng thái bài thi
+   * @returns {string} CSS classes cho màu sắc
+   */
   const getStatusColor = (status) => {
     switch (status) {
       case "completed":
@@ -179,6 +211,11 @@ const StudentResults = () => {
     }
   };
 
+  /**
+   * Chuyển đổi trạng thái sang tên hiển thị tiếng Việt
+   * @param {string} status - Trạng thái bài thi
+   * @returns {string} Tên hiển thị tiếng Việt
+   */
   const getStatusText = (status) => {
     switch (status) {
       case "completed":
@@ -190,12 +227,22 @@ const StudentResults = () => {
     }
   };
 
+  /**
+   * Lấy màu sắc CSS cho điểm số
+   * @param {number} score - Điểm số (0-100)
+   * @returns {string} CSS class cho màu sắc
+   */
   const getScoreColor = (score) => {
     if (score >= 80) return "text-green-600";
     if (score >= 60) return "text-yellow-600";
     return "text-red-600";
   };
 
+  /**
+   * Lấy emoji tương ứng với điểm số
+   * @param {number} score - Điểm số (0-100)
+   * @returns {string} Emoji
+   */
   const getScoreEmoji = (score) => {
     if (score >= 90) return "🏆";
     if (score >= 80) return "🎉";
@@ -205,6 +252,7 @@ const StudentResults = () => {
     return "😔";
   };
 
+  // Hiển thị loading nếu đang tải dữ liệu
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -213,6 +261,7 @@ const StudentResults = () => {
     );
   }
 
+  // Hiển thị lỗi nếu có
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -223,6 +272,7 @@ const StudentResults = () => {
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
+      {/* ==================== HEADER ==================== */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Kết quả Thi của Tôi</h1>
         <Button
@@ -233,8 +283,9 @@ const StudentResults = () => {
         </Button>
       </div>
 
-      {/* Overall Statistics */}
+      {/* ==================== OVERALL STATISTICS ==================== */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Card tổng đề thi */}
         <Card className="bg-blue-50">
           <div className="p-4">
             <p className="text-sm text-gray-600">Tổng đề thi</p>
@@ -243,6 +294,8 @@ const StudentResults = () => {
             </p>
           </div>
         </Card>
+        
+        {/* Card đã hoàn thành */}
         <Card className="bg-green-50">
           <div className="p-4">
             <p className="text-sm text-gray-600">Đã hoàn thành</p>
@@ -251,6 +304,8 @@ const StudentResults = () => {
             </p>
           </div>
         </Card>
+        
+        {/* Card điểm trung bình */}
         <Card className="bg-purple-50">
           <div className="p-4">
             <p className="text-sm text-gray-600">Điểm trung bình</p>
@@ -259,6 +314,8 @@ const StudentResults = () => {
             </p>
           </div>
         </Card>
+        
+        {/* Card cải thiện gần đây */}
         <Card className="bg-orange-50">
           <div className="p-4">
             <p className="text-sm text-gray-600">Cải thiện gần đây</p>
@@ -269,8 +326,9 @@ const StudentResults = () => {
         </Card>
       </div>
 
+      {/* ==================== DETAILED ANALYSIS ==================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Best Performance */}
+        {/* Thành tích tốt nhất */}
         <div className="lg:col-span-1">
           <Card title="🏆 Thành tích Tốt nhất">
             {stats.bestResult ? (
@@ -304,7 +362,7 @@ const StudentResults = () => {
           </Card>
         </div>
 
-        {/* Recent Performance */}
+        {/* Xu hướng gần đây */}
         <div className="lg:col-span-1">
           <Card title="📈 Xu hướng Gần đây">
             <div className="space-y-3">
@@ -329,7 +387,7 @@ const StudentResults = () => {
           </Card>
         </div>
 
-        {/* Quick Actions */}
+        {/* Thao tác nhanh */}
         <div className="lg:col-span-1">
           <Card title="Thao tác Nhanh">
             <div className="space-y-3">
@@ -352,8 +410,9 @@ const StudentResults = () => {
         </div>
       </div>
 
-      {/* Results List */}
+      {/* ==================== RESULTS LIST ==================== */}
       <div className="mt-8">
+        {/* Header danh sách kết quả */}
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="text-xl font-semibold">Lịch sử Thi</h2>
@@ -363,6 +422,7 @@ const StudentResults = () => {
             </p>
           </div>
           <div className="flex space-x-2">
+            {/* Filter dropdown */}
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -376,6 +436,7 @@ const StudentResults = () => {
         </div>
 
         <Card>
+          {/* Hiển thị khi không có kết quả */}
           {filteredResults.length === 0 ? (
             <div className="text-center py-8">
               <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -385,12 +446,14 @@ const StudentResults = () => {
             </div>
           ) : (
             <>
+              {/* Danh sách kết quả */}
               <div className="space-y-4">
                 {currentResults.map((result) => (
                   <div
                     key={result._id}
                     className="flex items-center justify-between py-4 border-b border-gray-200 last:border-b-0"
                   >
+                    {/* Thông tin kết quả */}
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
                         <h3 className="text-lg font-medium text-gray-900">
@@ -405,6 +468,7 @@ const StudentResults = () => {
                         </span>
                       </div>
                       <div className="flex items-center space-x-4 mt-2">
+                        {/* Hiển thị điểm nếu đã hoàn thành */}
                         {result.status === "completed" && (
                           <div className="flex items-center space-x-2">
                             <span
@@ -429,6 +493,8 @@ const StudentResults = () => {
                         </p>
                       </div>
                     </div>
+                    
+                    {/* Nút thao tác */}
                     <div className="ml-4">
                       {result.status === "completed" && (
                         <Link
@@ -451,20 +517,20 @@ const StudentResults = () => {
                 ))}
               </div>
 
-              {/* Pagination */}
+              {/* ==================== PAGINATION ==================== */}
               {totalPages > 1 && (
                 <div className="mt-6 border-t border-gray-200 pt-4">
                   <div className="flex items-center justify-between">
-                    {/* Info */}
+                    {/* Thông tin phân trang */}
                     <div className="text-sm text-gray-600">
                       Hiển thị {startIndex + 1}-
                       {Math.min(endIndex, filteredResults.length)} /{" "}
                       {filteredResults.length} kết quả
                     </div>
 
-                    {/* Pagination Controls */}
+                    {/* Điều khiển phân trang */}
                     <div className="flex items-center space-x-2">
-                      {/* Previous Button */}
+                      {/* Nút trước */}
                       <Button
                         variant="outline"
                         onClick={() => handlePageChange(currentPage - 1)}
@@ -474,7 +540,7 @@ const StudentResults = () => {
                         ← Trước
                       </Button>
 
-                      {/* Page Numbers */}
+                      {/* Số trang */}
                       <div className="flex items-center space-x-1">
                         {getPageNumbers().map((page, index) => (
                           <React.Fragment key={index}>
@@ -495,7 +561,7 @@ const StudentResults = () => {
                         ))}
                       </div>
 
-                      {/* Next Button */}
+                      {/* Nút sau */}
                       <Button
                         variant="outline"
                         onClick={() => handlePageChange(currentPage + 1)}
