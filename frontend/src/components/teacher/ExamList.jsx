@@ -7,7 +7,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
-import { format, utcToZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns-tz';
+import { utcToZonedTime } from 'date-fns-tz';
 
 /**
  * ExamList component
