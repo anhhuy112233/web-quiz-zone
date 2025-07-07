@@ -60,7 +60,7 @@ const ExamList = ({ exams, onDelete }) => {
   };
 
   /**
-   * Format ngày tháng theo định dạng Việt Nam
+   * Format ngày tháng theo định dạng Việt Nam, luôn hiển thị giờ local Việt Nam
    * @param {string|Date} date - Ngày cần format
    * @returns {string} Ngày đã format
    */
@@ -70,7 +70,9 @@ const ExamList = ({ exams, onDelete }) => {
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Asia/Ho_Chi_Minh' // Luôn hiển thị theo giờ Việt Nam
     });
   };
 
