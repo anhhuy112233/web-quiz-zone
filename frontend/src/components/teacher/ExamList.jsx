@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
+import { format, utcToZonedTime } from 'date-fns-tz';
 
 /**
  * ExamList component
@@ -60,20 +61,14 @@ const ExamList = ({ exams, onDelete }) => {
   };
 
   /**
-   * Format ngày tháng theo định dạng Việt Nam, luôn hiển thị giờ local Việt Nam
+   * Format ngày tháng theo định dạng Việt Nam, luôn hiển thị giờ local Việt Nam (Asia/Ho_Chi_Minh)
    * @param {string|Date} date - Ngày cần format
    * @returns {string} Ngày đã format
    */
   const formatDate = (date) => {
-    return new Date(date).toLocaleString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      timeZone: 'Asia/Ho_Chi_Minh' // Luôn hiển thị theo giờ Việt Nam
-    });
+    const timeZone = 'Asia/Ho_Chi_Minh';
+    const zonedDate = utcToZonedTime(date, timeZone);
+    return format(zonedDate, 'dd/MM/yyyy HH:mm', { timeZone });
   };
 
   /**
