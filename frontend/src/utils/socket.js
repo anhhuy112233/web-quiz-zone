@@ -45,9 +45,7 @@ class SocketClient {
       }
 
       const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
-      // Thay thế tất cả các chỗ dùng (import.meta.env.DEV ? 'http://localhost:5000' : 'https://your-backend-domain.onrender.com') thành SOCKET_URL
-      const socketUrl = SOCKET_URL || 
-        (import.meta.env.DEV ? 'http://localhost:5000' : 'https://web-quiz-zone.onrender.com');
+      const socketUrl = SOCKET_URL;
 
       // Tạo kết nối Socket.IO với cấu hình
       this.socket = io(socketUrl, {
