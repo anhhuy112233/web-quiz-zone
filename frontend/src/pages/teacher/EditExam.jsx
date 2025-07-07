@@ -8,7 +8,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
 import ExamForm from '../../components/teacher/ExamForm';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * EditExam component
@@ -35,7 +35,7 @@ const EditExam = () => {
   const fetchExam = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/exams/${id}`, {
+      const response = await fetch(createApiUrl(`/api/exams/${id}`), {
         headers: getAuthHeaders()
       });
       
@@ -64,7 +64,7 @@ const EditExam = () => {
       setSubmitLoading(true);
       
       // Gọi API cập nhật đề thi
-      const response = await fetch(`/api/exams/${id}`, {
+      const response = await fetch(createApiUrl(`/api/exams/${id}`), {
         method: 'PATCH',
         headers: getAuthHeaders(),
         body: JSON.stringify(formData)
