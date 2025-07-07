@@ -13,7 +13,7 @@ const signToken = (user) => {
     name: user.name, 
     role: user.role 
   }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN  // Thời gian hết hạn token
+    expiresIn: process.env.JWT_EXPIRE  // Thời gian hết hạn token
   });
 };
 
