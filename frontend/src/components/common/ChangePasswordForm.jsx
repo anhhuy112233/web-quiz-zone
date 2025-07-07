@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import Button from './Button';
 import Input from './Input';
 import Alert from './Alert';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * ChangePasswordForm component
@@ -73,7 +73,7 @@ const ChangePasswordForm = ({ onSuccess, onCancel }) => {
       setError('');
       
       // Gọi API đổi mật khẩu
-      const response = await fetch('http://localhost:5000/api/users/change-password', {
+      const response = await fetch(createApiUrl('/api/users/change-password'), {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({

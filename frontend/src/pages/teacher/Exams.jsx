@@ -9,7 +9,7 @@ import Button from '../../components/common/Button';
 import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
 import ExamList from '../../components/teacher/ExamList';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * Exams component
@@ -34,7 +34,7 @@ const Exams = () => {
   const fetchExams = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/exams', {
+      const response = await fetch(createApiUrl('/api/exams'), {
         headers: getAuthHeaders()
       });
       
@@ -65,7 +65,7 @@ const Exams = () => {
 
     try {
       setDeleteLoading(true);
-      const response = await fetch(`http://localhost:5000/api/exams/${examId}`, {
+      const response = await fetch(createApiUrl(`/api/exams/${examId}`), {
         method: 'DELETE',
         headers: getAuthHeaders()
       });

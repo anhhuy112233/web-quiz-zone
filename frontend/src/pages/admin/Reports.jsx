@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * Reports component
@@ -53,7 +53,7 @@ const Reports = () => {
       // ==================== FETCH USERS DATA ====================
       
       // Lấy dữ liệu người dùng
-      const usersResponse = await fetch('http://localhost:5000/api/users', {
+      const usersResponse = await fetch(createApiUrl('/api/users'), {
         headers: getAuthHeaders()
       });
       const usersData = await usersResponse.json();
@@ -62,7 +62,7 @@ const Reports = () => {
       // ==================== FETCH EXAMS DATA ====================
       
       // Lấy dữ liệu đề thi
-      const examsResponse = await fetch('http://localhost:5000/api/exams', {
+      const examsResponse = await fetch(createApiUrl('/api/exams'), {
         headers: getAuthHeaders()
       });
       const examsData = await examsResponse.json();
@@ -71,7 +71,7 @@ const Reports = () => {
       // ==================== FETCH RESULTS DATA ====================
       
       // Lấy dữ liệu kết quả thi
-      const resultsResponse = await fetch('http://localhost:5000/api/results', {
+      const resultsResponse = await fetch(createApiUrl('/api/results'), {
         headers: getAuthHeaders()
       });
       const resultsData = await resultsResponse.json();

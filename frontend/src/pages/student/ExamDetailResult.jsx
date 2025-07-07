@@ -9,7 +9,7 @@ import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * ExamDetailResult component
@@ -46,7 +46,7 @@ const ExamDetailResult = () => {
       console.log('Fetching result for exam:', id);
       
       // Tìm result của user hiện tại cho bài thi này
-      const response = await fetch(`http://localhost:5000/api/results?exam=${id}`, {
+      const response = await fetch(createApiUrl(`/api/results?exam=${id}`), {
         headers: getAuthHeaders()
       });
       const data = await response.json();

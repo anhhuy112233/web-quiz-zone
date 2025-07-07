@@ -9,7 +9,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * AdminExams component
@@ -32,7 +32,7 @@ const AdminExams = () => {
   const fetchExams = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/exams', {
+      const response = await fetch(createApiUrl('/api/exams'), {
         headers: getAuthHeaders()
       });
       
@@ -120,7 +120,7 @@ const AdminExams = () => {
       setError('');
       
       // Gọi API xóa đề thi
-      const response = await fetch(`http://localhost:5000/api/exams/${examId}`, {
+      const response = await fetch(createApiUrl(`/api/exams/${examId}`), {
         method: 'DELETE',
         headers: getAuthHeaders()
       });

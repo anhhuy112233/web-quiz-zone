@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import socketClient from '../../utils/socket.js';
-import { getAuthHeaders } from '../../utils/api.js';
+import { getAuthHeaders, createApiUrl } from '../../utils/api.js';
 import sessionManager from '../../utils/sessionManager.js';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
@@ -157,7 +157,7 @@ const ExamStart = () => {
           setShowRestoreMessage(true);
           
           // Lấy thông tin bài thi
-          const examResponse = await fetch(`http://localhost:5000/api/exams/${id}`, {
+          const examResponse = await fetch(createApiUrl(`/api/exams/${id}`), {
             headers: getAuthHeaders()
           });
           const examData = await examResponse.json();
@@ -187,7 +187,7 @@ const ExamStart = () => {
       // ==================== BẮT ĐẦU BÀI THI MỚI ====================
       
       // Bắt đầu làm bài mới (gọi API start)
-      const response = await fetch(`http://localhost:5000/api/exams/${id}/start`, {
+      const response = await fetch(createApiUrl(`/api/exams/${id}/start`), {
         method: 'POST',
         headers: getAuthHeaders()
       });
@@ -311,7 +311,7 @@ const ExamStart = () => {
       }));
       
       // Gửi đáp án lên backend
-      const response = await fetch(`http://localhost:5000/api/exams/${id}/submit`, {
+      const response = await fetch(createApiUrl(`/api/exams/${id}/submit`), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({

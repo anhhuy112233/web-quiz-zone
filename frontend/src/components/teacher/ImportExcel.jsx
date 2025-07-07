@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 import Button from '../common/Button';
 import Alert from '../common/Alert';
 
@@ -52,7 +52,7 @@ const ImportExcel = ({ onQuestionsImported, onClose }) => {
       formData.append('file', file);
 
       // Gọi API xử lý file
-      const response = await fetch('http://localhost:5000/api/exams/parse-excel', {
+      const response = await fetch(createApiUrl('/api/exams/parse-excel'), {
         method: 'POST',
         headers: {
           'Authorization': getAuthHeaders().Authorization,

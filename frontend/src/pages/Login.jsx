@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Alert from '../components/common/Alert';
 import Button from '../components/common/Button';
+import { createApiUrl } from '../utils/api';
 
 /**
  * Login component
@@ -48,7 +49,7 @@ const Login = ({ onLogin }) => {
       // ==================== API CALL ====================
       
       // Gọi API đăng nhập
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const response = await axios.post(createApiUrl('/api/auth/login'), formData);
       
       // Backend trả về: { status: 'success', token: '...', data: { user: {...} } }
       const { token, data } = response.data;

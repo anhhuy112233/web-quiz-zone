@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 import ExamForm from '../../components/teacher/ExamForm';
 
 /**
@@ -31,7 +31,7 @@ const CreateExam = () => {
       setLoading(true);
       
       // Gọi API tạo đề thi mới
-      const response = await fetch('http://localhost:5000/api/exams', {
+      const response = await fetch(createApiUrl('/api/exams'), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(formData)

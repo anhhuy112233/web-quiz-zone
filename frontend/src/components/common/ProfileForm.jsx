@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import Button from './Button';
 import Input from './Input';
 import Alert from './Alert';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * ProfileForm component
@@ -61,7 +61,7 @@ const ProfileForm = ({ user, onUpdate, onCancel }) => {
       setError('');
       
       // Gọi API cập nhật thông tin profile
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch(createApiUrl('/api/users/profile'), {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(formData)

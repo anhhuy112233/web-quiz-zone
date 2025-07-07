@@ -10,7 +10,7 @@ import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
 import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * Users component
@@ -45,7 +45,7 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch(createApiUrl('/api/users'), {
         headers: getAuthHeaders()
       });
       
@@ -80,7 +80,7 @@ const Users = () => {
       setError('');
       
       // Gọi API tạo người dùng mới
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch(createApiUrl('/api/users'), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(formData)
@@ -121,7 +121,7 @@ const Users = () => {
       setError('');
       
       // Gọi API cập nhật người dùng
-      const response = await fetch(`http://localhost:5000/api/users/${selectedUser._id}`, {
+      const response = await fetch(createApiUrl(`/api/users/${selectedUser._id}`), {
         method: 'PATCH',
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -164,7 +164,7 @@ const Users = () => {
       setError('');
       
       // Gọi API xóa người dùng
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(createApiUrl(`/api/users/${userId}`), {
         method: 'DELETE',
         headers: getAuthHeaders()
       });

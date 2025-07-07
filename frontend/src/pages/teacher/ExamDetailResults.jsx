@@ -9,7 +9,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * ExamDetailResults component
@@ -37,7 +37,7 @@ const ExamDetailResults = () => {
   const fetchExamResults = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/results/exam/${examId}`, {
+      const response = await fetch(createApiUrl(`/api/results/exam/${examId}`), {
         headers: getAuthHeaders()
       });
       const data = await response.json();
