@@ -27,7 +27,7 @@ const socketManager = new SocketManager(httpServer);
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? process.env.FRONTEND_URL || 'https://web-quiz-zone.vercel.app'
-    : 'http://localhost:3000',
+    : process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
 
@@ -55,7 +55,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('Connected to MongoDB');
     // Khởi động server sau khi kết nối database thành công
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 10000;
     httpServer.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
       console.log('Socket.IO server is ready for real-time connections');
