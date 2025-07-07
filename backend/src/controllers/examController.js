@@ -11,13 +11,16 @@ import XLSX from 'xlsx';                     // Thư viện xử lý file Excel
  */
 export const createExam = async (req, res) => {
   try {
+    // Ép kiểu Date cho startTime và endTime để tránh lỗi lệch múi giờ
+    const body = { ...req.body };
+    if (body.startTime) body.startTime = new Date(body.startTime);
+    if (body.endTime) body.endTime = new Date(body.endTime);
     // Tạo bài thi mới với thông tin từ request body
     // Tự động gán createdBy là user hiện tại
     const exam = await Exam.create({
-      ...req.body,
+      ...body,
       createdBy: req.user._id || req.user.id
     });
-
     // Trả về response thành công với dữ liệu bài thi
     res.status(201).json({
       status: 'success',
@@ -136,7 +139,6 @@ export const updateExam = async (req, res) => {
   try {
     // Tìm bài thi theo ID
     const exam = await Exam.findById(req.params.id);
-
     // Kiểm tra bài thi có tồn tại không
     if (!exam) {
       return res.status(404).json({
@@ -144,7 +146,6 @@ export const updateExam = async (req, res) => {
         message: 'Không tìm thấy bài thi.'
       });
     }
-
     // Kiểm tra quyền cập nhật: chỉ người tạo hoặc admin
     if (exam.createdBy.toString() !== (req.user._id || req.user.id).toString() && req.user.role !== 'admin') {
       return res.status(403).json({
@@ -152,7 +153,6 @@ export const updateExam = async (req, res) => {
         message: 'Bạn không có quyền cập nhật bài thi này.'
       });
     }
-
     // Không cho phép cập nhật nếu bài thi đang diễn ra hoặc đã kết thúc
     if (exam.status === 'active' || exam.status === 'completed') {
       return res.status(400).json({
@@ -160,17 +160,19 @@ export const updateExam = async (req, res) => {
         message: 'Không thể cập nhật bài thi đang diễn ra hoặc đã kết thúc.'
       });
     }
-
+    // Ép kiểu Date cho startTime và endTime để tránh lỗi lệch múi giờ
+    const body = { ...req.body };
+    if (body.startTime) body.startTime = new Date(body.startTime);
+    if (body.endTime) body.endTime = new Date(body.endTime);
     // Cập nhật bài thi với dữ liệu mới
     const updatedExam = await Exam.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      body,
       {
         new: true,           // Trả về document đã được cập nhật
         runValidators: true  // Chạy validation của mongoose
       }
     );
-
     // Trả về response thành công
     res.status(200).json({
       status: 'success',

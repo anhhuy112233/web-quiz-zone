@@ -102,7 +102,7 @@ const Header = ({ user, onLogout, onSessionChange }) => {
               <>
                 {/* Menu cho user chưa đăng nhập */}
                 <Link to="/login" className="block py-2 md:py-0 text-gray-700 hover:text-blue-600">Đăng nhập</Link>
-                <Link to="/register" className="block py-2 md:py-0 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors w-full md:w-auto text-center">Đăng ký</Link>
+                <Link to="/register" className="block py-2 md:py-0 bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-md transition-colors w-full md:w-auto text-center">Đăng ký</Link>
               </>
             )}
           </nav>
