@@ -8,7 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Alert from '../components/common/Alert';
 import Button from '../components/common/Button';
-import { createApiUrl } from '../utils/api';
+import { createApiUrl } from './utils/api';
 
 /**
  * Login component

@@ -43,7 +43,7 @@ import AdminReports from './pages/admin/Reports';
 
 // Import các utilities
 import sessionManager from './utils/sessionManager';
-import socketClient from './utils/socket.js';
+import socketClient from './utils/socket';
 
 /**
  * Component chuyển hướng dashboard theo vai trò của user

@@ -7,8 +7,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
-import { getAuthHeaders } from '../../utils/api';
-import { createApiUrl } from '../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * Reports component

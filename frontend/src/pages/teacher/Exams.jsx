@@ -9,8 +9,7 @@ import Button from '../../components/common/Button';
 import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
 import ExamList from '../../components/teacher/ExamList';
-import { getAuthHeaders } from '../../utils/api';
-import { createApiUrl } from '../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * Exams component

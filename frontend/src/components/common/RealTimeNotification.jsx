@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import socketClient from "../../utils/socket.js";
+import socketClient from "../../utils/socket";
 
 /**
  * RealTimeNotification component

@@ -5,9 +5,9 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import socketClient from '../../utils/socket.js';
-import { getAuthHeaders, createApiUrl } from '../../utils/api.js';
-import sessionManager from '../../utils/sessionManager.js';
+import socketClient from '../../utils/socket';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
+import sessionManager from '../../utils/sessionManager';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
 import Button from '../../components/common/Button';

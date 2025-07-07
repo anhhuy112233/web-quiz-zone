@@ -12,8 +12,7 @@ import Loading from '../../components/common/Loading';
 import Modal from '../../components/common/Modal';
 import ProfileForm from '../../components/common/ProfileForm';
 import ChangePasswordForm from '../../components/common/ChangePasswordForm';
-import { getAuthHeaders } from '../../utils/api';
-import { createApiUrl } from '../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * Profile component

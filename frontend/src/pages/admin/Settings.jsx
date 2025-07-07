@@ -9,8 +9,7 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
-import { getAuthHeaders } from '../../utils/api';
-import { createApiUrl } from '../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * Settings component

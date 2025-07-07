@@ -10,8 +10,7 @@ import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
 import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
-import { getAuthHeaders } from '../../utils/api';
-import { createApiUrl } from '../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * Users component

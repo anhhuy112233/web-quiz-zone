@@ -7,8 +7,7 @@ import React, { useState } from 'react';
 import Button from './Button';
 import Input from './Input';
 import Alert from './Alert';
-import { getAuthHeaders } from '../../utils/api';
-import { createApiUrl } from '../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 
 /**
  * ProfileForm component

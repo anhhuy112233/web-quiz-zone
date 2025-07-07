@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 import Button from '../common/Button';
 import Alert from '../common/Alert';
 
@@ -13,7 +13,6 @@ import Alert from '../common/Alert';
  * @param {Function} onQuestionsImported - Callback khi import thành công
  * @param {Function} onClose - Callback khi đóng modal
  * @returns {JSX.Element} Modal import Excel với preview và validation
-import { createApiUrl } from '../utils/api';
  */
 const ImportExcel = ({ onQuestionsImported, onClose }) => {
   // State quản lý file, loading, lỗi và preview

@@ -8,9 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
 import ExamForm from '../../components/teacher/ExamForm';
-import { createApiUrl } from '../utils/api';
 
 /**
  * CreateExam component

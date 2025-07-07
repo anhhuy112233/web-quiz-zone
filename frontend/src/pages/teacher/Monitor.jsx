@@ -5,9 +5,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import socketClient from '../../utils/socket.js';
-import { getAuthHeaders, createApiUrl } from '../../utils/api.js';
-import { getCurrentSessionInfo, clearAllSessions } from '../../utils/sessionManager.js';
+import socketClient from '../../utils/socket';
+import { getAuthHeaders, createApiUrl } from '../../utils/api';
+import { getCurrentSessionInfo, clearAllSessions } from '../../utils/sessionManager';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import Alert from '../../components/common/Alert';
