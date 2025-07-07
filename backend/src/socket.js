@@ -141,11 +141,7 @@ class SocketManager {
         this.handleStartMonitoring(socket, examId);
       });
 
-      // Test event
-      socket.on('test', (data) => {
-        console.log(`Test event from ${socket.userName}:`, data);
-        socket.emit('test', { message: 'Test response from server', timestamp: new Date() });
-      });
+      
 
       // Xử lý ngắt kết nối
       socket.on('disconnect', () => {

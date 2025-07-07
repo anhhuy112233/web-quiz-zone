@@ -32,16 +32,10 @@ try {
   app.use(express.json());
   console.log('✅ JSON middleware configured');
 
-  // Add debug middleware to log all requests
-  console.log('4. Setting up debug middleware...');
-  app.use((req, res, next) => {
-    console.log(`📝 ${req.method} ${req.path} - ${new Date().toISOString()}`);
-    next();
-  });
-  console.log('✅ Debug middleware configured');
+
 
   // Route gốc - Health check
-  console.log('5. Setting up basic routes...');
+  console.log('4. Setting up basic routes...');
   app.get('/', (req, res) => {
     res.json({
       message: 'Exam System API is running!',
@@ -66,7 +60,7 @@ try {
   console.log('✅ Health check configured');
 
   // Import và đăng ký các routes
-  console.log('6. Importing and registering API routes...');
+  console.log('5. Importing and registering API routes...');
   
   console.log('   - Importing auth routes...');
   const authRoutes = await import('./routes/auth.js');
@@ -98,7 +92,7 @@ try {
   console.log('✅ Result routes registered at /api/results');
 
   // Import Socket.IO manager
-  console.log('7. Setting up Socket.IO...');
+  console.log('6. Setting up Socket.IO...');
   const SocketManager = await import('./socket.js');
   const socketManager = new SocketManager.default(httpServer);
   console.log('✅ Socket.IO configured');
@@ -111,14 +105,14 @@ try {
   console.log('✅ Stats endpoint configured');
 
   // Import và đăng ký error handlers
-  console.log('8. Setting up error handlers...');
+  console.log('7. Setting up error handlers...');
   const { errorHandler, notFound } = await import('./middleware/errorHandler.js');
   app.use(notFound);
   app.use(errorHandler);
   console.log('✅ Error handlers configured');
 
   // Kết nối đến MongoDB database
-  console.log('9. Connecting to MongoDB...');
+  console.log('8. Connecting to MongoDB...');
   console.log('MongoDB URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
   
   mongoose.connect(process.env.MONGODB_URI)
@@ -127,7 +121,7 @@ try {
       
       // Khởi động server sau khi kết nối database thành công
       const PORT = process.env.PORT || 5000;
-      console.log(`10. Starting server on port ${PORT}...`);
+      console.log(`9. Starting server on port ${PORT}...`);
       
       httpServer.listen(PORT, () => {
         console.log(`✅ Server is running on port ${PORT}`);

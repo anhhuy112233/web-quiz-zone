@@ -44,10 +44,8 @@ class SocketClient {
         }
       }
 
-      // Socket.IO server URL - force production URL trong production
-      const socketUrl = import.meta.env.PROD 
-        ? 'https://web-quiz-zone.onrender.com'  // Force production URL
-        : (import.meta.env.VITE_SOCKET_URL || 'https://web-quiz-zone.onrender.com');
+      // Socket.IO server URL - chỉ lấy từ env, fallback production nếu không có
+      const socketUrl = import.meta.env.VITE_SOCKET_URL || 'https://web-quiz-zone.onrender.com';
 
       // Tạo kết nối Socket.IO với cấu hình
       this.socket = io(socketUrl, {
