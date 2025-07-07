@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import { format } from 'date-fns-tz';
-import { utcToZonedTime } from 'date-fns-tz';
+import { formatInTimeZone } from 'date-fns-tz';
 
 /**
  * ExamList component
@@ -67,9 +67,8 @@ const ExamList = ({ exams, onDelete }) => {
    * @returns {string} Ngày đã format
    */
   const formatDate = (date) => {
-    const timeZone = 'Asia/Ho_Chi_Minh';
-    const zonedDate = utcToZonedTime(date, timeZone);
-    return format(zonedDate, 'dd/MM/yyyy HH:mm', { timeZone });
+    // Sử dụng formatInTimeZone để chuyển đổi và hiển thị đúng giờ Việt Nam
+    return formatInTimeZone(date, 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy HH:mm');
   };
 
   /**
