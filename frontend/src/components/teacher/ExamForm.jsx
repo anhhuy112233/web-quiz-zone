@@ -102,6 +102,22 @@ const ExamForm = ({ exam, onSubmit }) => {
   };
 
   /**
+   * Chuyển đổi local datetime-local (giờ máy người dùng) sang UTC ISO string
+   * @param {string} localDateTimeStr - Chuỗi dạng 'YYYY-MM-DDTHH:mm' từ input
+   * @returns {string} ISO string UTC
+   */
+  const toUTCISOString = (localDateTimeStr) => {
+    if (!localDateTimeStr) return '';
+    const [date, time] = localDateTimeStr.split('T');
+    const [year, month, day] = date.split('-');
+    const [hour, minute] = time.split(':');
+    // Tạo đối tượng Date với local time
+    const localDate = new Date(year, month - 1, day, hour, minute);
+    // Trả về ISO string (UTC)
+    return localDate.toISOString();
+  };
+
+  /**
    * Handler khi submit form
    * @param {Event} e - Event object
    */
@@ -112,17 +128,14 @@ const ExamForm = ({ exam, onSubmit }) => {
 
     try {
       // ==================== VALIDATION ====================
-      
       // Kiểm tra thông tin cơ bản
       if (!formData.title || !formData.duration || !formData.startTime || !formData.endTime) {
         throw new Error('Vui lòng điền đầy đủ thông tin bài thi');
       }
-
       // Kiểm tra có câu hỏi không
       if (questions.length === 0) {
         throw new Error('Vui lòng thêm ít nhất một câu hỏi');
       }
-
       // Kiểm tra từng câu hỏi
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
@@ -133,16 +146,15 @@ const ExamForm = ({ exam, onSubmit }) => {
           throw new Error(`Vui lòng nhập đầy đủ các lựa chọn cho câu hỏi ${i + 1}`);
         }
       }
-
       // ==================== SUBMIT ====================
-      
-      // Gọi callback submit với dữ liệu đã validate
+      // Chuyển startTime, endTime từ local sang UTC ISO string trước khi gửi backend
       await onSubmit({
         ...formData,
+        startTime: toUTCISOString(formData.startTime),
+        endTime: toUTCISOString(formData.endTime),
         questions,
-        status: 'scheduled',  // Mặc định là scheduled
+        status: 'scheduled',
       });
-
       // Chuyển về trang danh sách đề thi
       navigate('/teacher/exams');
     } catch (err) {

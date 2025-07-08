@@ -7,7 +7,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
-import { format } from 'date-fns-tz';
 import { formatInTimeZone } from 'date-fns-tz';
 
 /**
