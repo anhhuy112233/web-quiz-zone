@@ -3,12 +3,13 @@
  * Cho phép giáo viên tạo đề thi mới hoặc chỉnh sửa đề thi hiện có
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../common/Input';
 import Button from '../common/Button';
 import Alert from '../common/Alert';
 import ImportExcel from './ImportExcel';
+import { getApiUrl, getAuthHeaders } from '../../utils/api';
 
 /**
  * ExamForm component
@@ -27,16 +28,46 @@ const ExamForm = ({ exam, onSubmit }) => {
     totalQuestions: exam?.totalQuestions || 0,   // Số câu hỏi
     startTime: exam?.startTime ? new Date(exam.startTime).toISOString().slice(0, 16) : '', // Thời gian bắt đầu
     endTime: exam?.endTime ? new Date(exam.endTime).toISOString().slice(0, 16) : '',       // Thời gian kết thúc
-    isPublic: exam?.isPublic || false           // Có công khai không
+    isPublic: exam?.isPublic || false,          // Có công khai không
+    classId: exam?.classId?._id || exam?.classId || ''  // Mã lớp
   });
   
   // State quản lý danh sách câu hỏi
   const [questions, setQuestions] = useState(exam?.questions || []);
   
+  // State quản lý danh sách lớp học
+  const [classes, setClasses] = useState([]);
+  
   // State quản lý trạng thái loading, lỗi và modal
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+
+  // Fetch danh sách lớp học khi component mount
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  /**
+   * Fetch danh sách lớp học
+   * Teacher có thể xem tất cả lớp khi tạo exam (dùng query param ?all=true)
+   */
+  const fetchClasses = async () => {
+    try {
+      // Thêm query param ?all=true để teacher có thể xem tất cả lớp
+      const response = await fetch(getApiUrl('classes?all=true'), {
+        headers: getAuthHeaders()
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setClasses(data.data.classes || []);
+      } else {
+        console.error('Error fetching classes:', data.message);
+      }
+    } catch (err) {
+      console.error('Error fetching classes:', err);
+    }
+  };
 
   /**
    * Handler khi thay đổi giá trị input trong form
@@ -221,6 +252,29 @@ const ExamForm = ({ exam, onSubmit }) => {
           />
         </div>
 
+        {/* Chọn lớp học */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Lớp học
+          </label>
+          <select
+            name="classId"
+            value={formData.classId}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Chọn lớp (để trống nếu không áp dụng)</option>
+            {classes.map((classItem) => (
+              <option key={classItem._id} value={classItem._id}>
+                {classItem.classCode} - {classItem.className}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-gray-500">
+            Chọn lớp để chỉ sinh viên trong lớp đó mới thấy và làm bài thi này
+          </p>
+        </div>
+
         {/* Checkbox công khai */}
         <div className="flex items-center">
           <input
@@ -231,7 +285,7 @@ const ExamForm = ({ exam, onSubmit }) => {
             className="h-4 w-4 text-primary-600"
           />
           <label className="ml-2 text-sm text-gray-600">
-            Công khai bài thi
+            Công khai bài thi (sinh viên trong lớp có thể thấy và làm bài)
           </label>
         </div>
       </div>

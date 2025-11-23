@@ -29,6 +29,32 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'teacher', 'admin'],  // Chỉ cho phép 3 role này
     default: 'student'  // Mặc định là student
   },
+  
+  // Mã sinh viên (unique, chỉ cho student)
+  studentId: {
+    type: String,
+    unique: true,
+    sparse: true, // Cho phép null nhưng nếu có thì phải unique
+    trim: true,
+    uppercase: true
+  },
+  
+  // Mã giáo viên (unique, chỉ cho teacher)
+  teacherId: {
+    type: String,
+    unique: true,
+    sparse: true, // Cho phép null nhưng nếu có thì phải unique
+    trim: true,
+    uppercase: true
+  },
+  
+  // Mã lớp (liên kết với Class, chỉ cho student)
+  classId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Class',
+    default: null
+  },
+  
   createdAt: {
     type: Date,
     default: Date.now  // Tự động set thời gian tạo
@@ -54,6 +80,46 @@ userSchema.pre('save', async function(next) {
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
+
+// Validation: Kiểm tra studentId và teacherId phù hợp với role
+// Chỉ validate khi tạo mới hoặc khi role được thay đổi
+userSchema.pre('save', function(next) {
+  // Chỉ validate khi tạo mới (isNew) hoặc khi role/studentId/teacherId/classId được thay đổi
+  if (this.isNew || this.isModified('role') || this.isModified('studentId') || 
+      this.isModified('teacherId') || this.isModified('classId')) {
+    
+    // Admin không cần studentId, teacherId, classId
+    if (this.role === 'admin') {
+      this.studentId = undefined;
+      this.teacherId = undefined;
+      this.classId = undefined;
+      return next();
+    }
+    
+    // Student phải có studentId (có thể thêm sau khi tạo)
+    // Không bắt buộc ngay khi tạo để linh hoạt
+    // if (this.role === 'student' && !this.studentId) {
+    //   return next(new Error('Sinh viên phải có mã sinh viên (studentId)'));
+    // }
+    
+    // Teacher phải có teacherId (có thể thêm sau khi tạo)
+    // if (this.role === 'teacher' && !this.teacherId) {
+    //   return next(new Error('Giáo viên phải có mã giáo viên (teacherId)'));
+    // }
+    
+    // Student không bắt buộc phải có classId ngay (có thể gán sau)
+    // if (this.role === 'student' && !this.classId) {
+    //   return next(new Error('Sinh viên phải thuộc về một lớp (classId)'));
+    // }
+  }
+  next();
+});
+
+// Tạo index để tối ưu hiệu suất query
+userSchema.index({ studentId: 1 });
+userSchema.index({ teacherId: 1 });
+userSchema.index({ classId: 1 });
+userSchema.index({ role: 1, classId: 1 });
 
 // Tạo model User từ schema
 const User = mongoose.model('User', userSchema);

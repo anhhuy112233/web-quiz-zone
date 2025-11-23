@@ -30,7 +30,10 @@ router.get('/', restrictTo('admin', 'teacher'), async (req, res) => {
     }
     
     // Tìm tất cả users theo điều kiện, loại bỏ trường password
-    const users = await User.find(query).select('-password');
+    // Populate classId để lấy thông tin lớp nếu có
+    const users = await User.find(query)
+      .select('-password')
+      .populate('classId', 'classCode className');
     
     // Trả về response thành công
     res.status(200).json({

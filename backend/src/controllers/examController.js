@@ -2,6 +2,7 @@
 import Exam from "../models/Exam.js"; // Model Exam để tương tác với bảng exams
 import Result from "../models/Result.js"; // Model Result để lấy kết quả thi
 import User from "../models/User.js"; // Model User để lấy thông tin user
+import Class from "../models/Class.js"; // Model Class để quản lý lớp học
 import XLSX from "xlsx"; // Thư viện xử lý file Excel
 
 /**
@@ -35,8 +36,9 @@ export const createExam = async (req, res) => {
 /**
  * Lấy danh sách tất cả bài thi (có phân quyền theo role)
  * GET /api/exams
- * - Student: chỉ xem được bài thi public hoặc scheduled
- * - Teacher/Admin: xem được tất cả bài thi
+ * - Student: chỉ xem được bài thi public của lớp mình
+ * - Teacher: chỉ xem được bài thi do mình tạo
+ * - Admin: xem được tất cả bài thi
  */
 export const getAllExams = async (req, res) => {
   try {
@@ -55,17 +57,35 @@ export const getAllExams = async (req, res) => {
       };
     }
 
-    // Nếu user là student, chỉ cho xem bài thi public hoặc scheduled
+    // Lấy thông tin user đầy đủ (bao gồm classId)
+    const user = await User.findById(req.user._id || req.user.id);
+
+    // Nếu user là student
     if (req.user.role === "student") {
-      query.$or = [
-        { isPublic: true }, // Bài thi công khai
-        { status: "scheduled" }, // Bài thi đã lên lịch
-      ];
+      // Chỉ xem được bài thi public của lớp mình
+      if (!user.classId) {
+        return res.status(403).json({
+          status: "error",
+          message: "Bạn chưa được gán vào lớp nào.",
+        });
+      }
+      
+      query.classId = user.classId; // Chỉ bài thi của lớp mình
+      query.isPublic = true; // Chỉ bài thi public
     }
 
-    // Tìm bài thi theo query, populate thông tin người tạo
+    // Nếu user là teacher
+    if (req.user.role === "teacher") {
+      // Chỉ xem được bài thi do mình tạo
+      query.createdBy = req.user._id || req.user.id;
+    }
+
+    // Admin xem được tất cả (không cần filter)
+
+    // Tìm bài thi theo query, populate thông tin người tạo và lớp
     const exams = await Exam.find(query)
-      .populate("createdBy", "name email") // Lấy thông tin người tạo
+      .populate("createdBy", "name email teacherId") // Lấy thông tin người tạo
+      .populate("classId", "classCode className") // Lấy thông tin lớp
       .sort("-createdAt"); // Sắp xếp theo thời gian tạo mới nhất
 
     // Trả về response với danh sách bài thi
@@ -90,11 +110,10 @@ export const getAllExams = async (req, res) => {
  */
 export const getExam = async (req, res) => {
   try {
-    // Tìm bài thi theo ID và populate thông tin người tạo
-    const exam = await Exam.findById(req.params.id).populate(
-      "createdBy",
-      "name email"
-    );
+    // Tìm bài thi theo ID và populate thông tin người tạo và lớp
+    const exam = await Exam.findById(req.params.id)
+      .populate("createdBy", "name email teacherId")
+      .populate("classId", "classCode className");
 
     // Kiểm tra bài thi có tồn tại không
     if (!exam) {
@@ -104,16 +123,48 @@ export const getExam = async (req, res) => {
       });
     }
 
-    // Nếu user là student, kiểm tra quyền truy cập
+    // Lấy thông tin user đầy đủ
+    const user = await User.findById(req.user._id || req.user.id);
+
+    // Nếu user là student
     if (req.user.role === "student") {
-      // Chỉ cho phép truy cập bài thi public hoặc scheduled
-      if (!exam.isPublic && exam.status !== "scheduled") {
+      // Kiểm tra sinh viên có thuộc lớp không
+      if (!user.classId) {
+        return res.status(403).json({
+          status: "error",
+          message: "Bạn chưa được gán vào lớp nào.",
+        });
+      }
+
+      // Kiểm tra bài thi có phải của lớp mình không
+      if (exam.classId && exam.classId.toString() !== user.classId.toString()) {
+        return res.status(403).json({
+          status: "error",
+          message: "Bạn không có quyền xem đề thi của lớp khác.",
+        });
+      }
+
+      // Kiểm tra bài thi có public không
+      if (!exam.isPublic) {
         return res.status(403).json({
           status: "error",
           message: "Bạn không có quyền truy cập bài thi này.",
         });
       }
     }
+
+    // Nếu user là teacher
+    if (req.user.role === "teacher") {
+      // Chỉ cho phép xem bài thi do mình tạo
+      if (exam.createdBy.toString() !== (req.user._id || req.user.id).toString()) {
+        return res.status(403).json({
+          status: "error",
+          message: "Bạn không có quyền xem đề thi của giáo viên khác.",
+        });
+      }
+    }
+
+    // Admin có thể xem tất cả (không cần kiểm tra)
 
     // Trả về thông tin bài thi
     res.status(200).json({
@@ -258,8 +309,35 @@ export const startExam = async (req, res) => {
       });
     }
 
+    // Lấy thông tin user đầy đủ
+    const user = await User.findById(req.user._id || req.user.id);
+
+    // Kiểm tra sinh viên có thuộc lớp không
+    if (!user.classId) {
+      return res.status(403).json({
+        status: "error",
+        message: "Bạn chưa được gán vào lớp nào.",
+      });
+    }
+
+    // Kiểm tra bài thi có phải của lớp mình không
+    if (exam.classId && exam.classId.toString() !== user.classId.toString()) {
+      return res.status(403).json({
+        status: "error",
+        message: "Bạn không có quyền làm bài thi của lớp khác.",
+      });
+    }
+
+    // Kiểm tra bài thi có public không
+    if (!exam.isPublic) {
+      return res.status(403).json({
+        status: "error",
+        message: "Bạn không có quyền làm bài thi này.",
+      });
+    }
+
     // Kiểm tra bài thi đã được lên lịch chưa
-    if (exam.status !== "scheduled") {
+    if (exam.status !== "scheduled" && exam.status !== "active") {
       return res.status(400).json({
         status: "error",
         message: "Bài thi chưa được lên lịch.",

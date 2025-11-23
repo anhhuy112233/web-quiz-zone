@@ -340,7 +340,7 @@ export const getUser = async (req, res) => {
  */
 export const createUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, studentId, teacherId, classId } = req.body;
     
     // Validate input
     if (!name || !email || !password) {
@@ -359,12 +359,37 @@ export const createUser = async (req, res) => {
       });
     }
     
+    // Kiểm tra studentId đã tồn tại chưa (nếu có)
+    if (studentId) {
+      const existingStudent = await User.findOne({ studentId });
+      if (existingStudent) {
+        return res.status(400).json({
+          status: "error",
+          message: "Mã sinh viên đã được sử dụng.",
+        });
+      }
+    }
+    
+    // Kiểm tra teacherId đã tồn tại chưa (nếu có)
+    if (teacherId) {
+      const existingTeacher = await User.findOne({ teacherId });
+      if (existingTeacher) {
+        return res.status(400).json({
+          status: "error",
+          message: "Mã giáo viên đã được sử dụng.",
+        });
+      }
+    }
+    
     // Tạo user mới (password sẽ được hash tự động bởi pre-save hook)
     const newUser = await User.create({
       name,
       email,
       password, // Không hash ở đây, để pre-save hook xử lý
       role: role || "student", // Mặc định là student nếu không có role
+      studentId: studentId || undefined,
+      teacherId: teacherId || undefined,
+      classId: classId || undefined
     });
     
     // Log for debugging (remove in production)
@@ -400,7 +425,7 @@ export const createUser = async (req, res) => {
  */
 export const updateUser = async (req, res) => {
   try {
-    const { name, email, role } = req.body;
+    const { name, email, role, studentId, teacherId, classId } = req.body;
     
     // Validate input
     if (!name || !email) {
@@ -422,12 +447,49 @@ export const updateUser = async (req, res) => {
       });
     }
     
+    // Chuẩn bị dữ liệu cập nhật
+    const updateData = { name, email, role };
+    const unsetData = {};
+    
+    // Thêm studentId nếu có (chỉ cho student)
+    if (role === 'student') {
+      if (studentId) {
+        updateData.studentId = studentId.toUpperCase().trim();
+      }
+      // Thêm classId nếu có
+      if (classId) {
+        updateData.classId = classId;
+      }
+      // Xóa teacherId nếu có
+      if (teacherId) {
+        unsetData.teacherId = "";
+      }
+    } else if (role === 'teacher') {
+      // Thêm teacherId nếu có
+      if (teacherId) {
+        updateData.teacherId = teacherId.toUpperCase().trim();
+      }
+      // Xóa studentId và classId nếu có
+      unsetData.studentId = "";
+      unsetData.classId = "";
+    } else {
+      // Admin: xóa studentId, teacherId, classId
+      unsetData.studentId = "";
+      unsetData.teacherId = "";
+      unsetData.classId = "";
+    }
+    
+    // Nếu có field cần xóa, thêm $unset
+    if (Object.keys(unsetData).length > 0) {
+      updateData.$unset = unsetData;
+    }
+    
     // Cập nhật user
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { name, email, role },
+      updateData,
       { new: true, runValidators: true }
-    ).select("-password");
+    ).select("-password").populate('classId', 'classCode className');
     
     // Kiểm tra user có tồn tại không
     if (!updatedUser) {

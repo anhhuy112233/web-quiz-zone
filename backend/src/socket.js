@@ -11,8 +11,9 @@ class SocketManager {
     // Khởi tạo Socket.IO server với cấu hình CORS
     this.io = new Server(server, {
       cors: {
-        origin: "http://localhost:3000",  // Cho phép frontend kết nối
-        methods: ["GET", "POST"]
+        origin: process.env.FRONTEND_URL || "http://localhost:3000",  // Cho phép frontend kết nối
+        methods: ["GET", "POST"],
+        credentials: true
       }
     });
     

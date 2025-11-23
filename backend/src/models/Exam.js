@@ -66,6 +66,14 @@ const examSchema = new mongoose.Schema({
     required: true
   },
   
+  // Mã lớp (liên kết với Class)
+  // Nếu có classId, chỉ sinh viên trong lớp đó mới thấy
+  classId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Class',
+    default: null
+  },
+  
   // Trạng thái bài thi
   status: {
     type: String,
@@ -73,17 +81,19 @@ const examSchema = new mongoose.Schema({
     default: 'draft'
   },
   
+  // Trạng thái public (công khai)
+  // Nếu public = true, sinh viên trong lớp có thể thấy và làm bài
+  // Nếu public = false, chỉ giáo viên tạo mới thấy
+  isPublic: {
+    type: Boolean,
+    default: false
+  },
+  
   // Danh sách người tham gia
   participants: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }],
-  
-  // Có phải bài thi công khai không
-  isPublic: {
-    type: Boolean,
-    default: false
-  }
+  }]
 }, {
   timestamps: true  // Tự động thêm createdAt và updatedAt
 });
@@ -92,6 +102,9 @@ const examSchema = new mongoose.Schema({
 examSchema.index({ startTime: 1, endTime: 1 });  // Index cho thời gian thi
 examSchema.index({ status: 1 });                 // Index cho trạng thái
 examSchema.index({ createdBy: 1 });              // Index cho người tạo
+examSchema.index({ classId: 1 });                // Index cho lớp
+examSchema.index({ classId: 1, isPublic: 1 });   // Index cho lớp và trạng thái public
+examSchema.index({ createdBy: 1, classId: 1 });  // Index cho người tạo và lớp
 
 // Tạo model Exam từ schema
 const Exam = mongoose.model('Exam', examSchema);

@@ -40,6 +40,7 @@ import AdminUsers from './pages/admin/Users';
 import AdminExams from './pages/admin/Exams';
 import AdminSettings from './pages/admin/Settings';
 import AdminReports from './pages/admin/Reports';
+import AdminClasses from './pages/admin/Classes';
 
 // Import các utilities
 import sessionManager from './utils/sessionManager';
@@ -357,6 +358,15 @@ function App() {
           <ProtectedRoute role="admin">
             <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
               <AdminReports />
+            </Layout>
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Classes Route */}
+        <Route path="/admin/classes" element={
+          <ProtectedRoute role="admin">
+            <Layout user={user} onLogout={handleLogout} onSessionChange={handleSessionChange}>
+              <AdminClasses />
             </Layout>
           </ProtectedRoute>
         } />

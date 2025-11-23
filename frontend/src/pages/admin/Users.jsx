@@ -10,7 +10,7 @@ import Alert from '../../components/common/Alert';
 import Loading from '../../components/common/Loading';
 import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
-import { getAuthHeaders } from '../../utils/api';
+import { getAuthHeaders, getApiUrl } from '../../utils/api';
 
 /**
  * Users component
@@ -19,6 +19,7 @@ import { getAuthHeaders } from '../../utils/api';
 const Users = () => {
   // State quản lý danh sách người dùng và trạng thái
   const [users, setUsers] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -31,13 +32,34 @@ const Users = () => {
     name: '',
     email: '',
     password: '',
-    role: 'student'
+    role: 'student',
+    studentId: '',
+    teacherId: '',
+    classId: ''
   });
 
-  // Effect để fetch danh sách người dùng khi component mount
+  // Effect để fetch danh sách người dùng và lớp học khi component mount
   useEffect(() => {
     fetchUsers();
+    fetchClasses();
   }, []);
+
+  /**
+   * Fetch danh sách lớp học
+   */
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch(getApiUrl('classes'), {
+        headers: getAuthHeaders()
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setClasses(data.data.classes || []);
+      }
+    } catch (err) {
+      console.error('Error fetching classes:', err);
+    }
+  };
 
   /**
    * Fetch danh sách tất cả người dùng từ API
@@ -45,7 +67,7 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch(getApiUrl('users'), {
         headers: getAuthHeaders()
       });
       
@@ -80,7 +102,7 @@ const Users = () => {
       setError('');
       
       // Gọi API tạo người dùng mới
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch(getApiUrl('users'), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(formData)
@@ -94,7 +116,7 @@ const Users = () => {
 
       setSuccessMessage('Tạo người dùng thành công!');
       setShowAddModal(false);
-      setFormData({ name: '', email: '', password: '', role: 'student' });
+      setFormData({ name: '', email: '', password: '', role: 'student', studentId: '', teacherId: '', classId: '' });
       fetchUsers(); // Refresh danh sách
     } catch (err) {
       setError(err.message);
@@ -121,14 +143,30 @@ const Users = () => {
       setError('');
       
       // Gọi API cập nhật người dùng
-      const response = await fetch(`http://localhost:5000/api/users/${selectedUser._id}`, {
+      const updateData = {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role
+      };
+      
+      // Thêm các trường theo role
+      if (formData.role === 'student') {
+        if (formData.studentId) {
+          updateData.studentId = formData.studentId.toUpperCase().trim();
+        }
+        if (formData.classId) {
+          updateData.classId = formData.classId;
+        }
+      } else if (formData.role === 'teacher') {
+        if (formData.teacherId) {
+          updateData.teacherId = formData.teacherId.toUpperCase().trim();
+        }
+      }
+      
+      const response = await fetch(getApiUrl(`users/${selectedUser._id}`), {
         method: 'PATCH',
         headers: getAuthHeaders(),
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          role: formData.role
-        })
+        body: JSON.stringify(updateData)
       });
 
       const data = await response.json();
@@ -164,7 +202,7 @@ const Users = () => {
       setError('');
       
       // Gọi API xóa người dùng
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(getApiUrl(`users/${userId}`), {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
@@ -190,11 +228,20 @@ const Users = () => {
    */
   const openEditModal = (user) => {
     setSelectedUser(user);
+    console.log('Editing user:', user); // Debug log
     setFormData({
-      name: user.name,
-      email: user.email,
+      name: user.name || '',
+      email: user.email || '',
       password: '',
-      role: user.role
+      role: user.role || 'student',
+      studentId: user.studentId || '',
+      teacherId: user.teacherId || '',
+      classId: (user.classId && (user.classId._id || user.classId)) || ''
+    });
+    console.log('Form data set to:', { // Debug log
+      studentId: user.studentId || '',
+      teacherId: user.teacherId || '',
+      classId: (user.classId && (user.classId._id || user.classId)) || ''
     });
     setShowEditModal(true);
   };
@@ -280,6 +327,12 @@ const Users = () => {
                     Vai trò
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Mã SV/GV
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Lớp
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ngày tham gia
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -323,6 +376,24 @@ const Users = () => {
                       }`}>
                         {getRoleDisplayName(user.role)}
                       </span>
+                    </td>
+                    {/* Mã SV/GV */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {user.role === 'student' ? (
+                        <span className="font-medium text-gray-900">
+                          {user.studentId || <span className="text-gray-400 italic">Chưa có mã</span>}
+                        </span>
+                      ) : user.role === 'teacher' ? (
+                        <span className="font-medium text-gray-900">
+                          {user.teacherId || <span className="text-gray-400 italic">Chưa có mã</span>}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    {/* Lớp */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user.classId?.className || user.classId?.classCode || '-'}
                     </td>
                     {/* Ngày tạo tài khoản */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -416,7 +487,16 @@ const Users = () => {
               </label>
               <select
                 value={formData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                onChange={(e) => {
+                  const newRole = e.target.value;
+                  setFormData({
+                    ...formData,
+                    role: newRole,
+                    studentId: newRole === 'student' ? formData.studentId : '',
+                    teacherId: newRole === 'teacher' ? formData.teacherId : '',
+                    classId: newRole === 'student' ? formData.classId : ''
+                  });
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="student">Học sinh</option>
@@ -424,6 +504,57 @@ const Users = () => {
                 <option value="admin">Quản trị viên</option>
               </select>
             </div>
+
+            {/* Trường mã sinh viên (chỉ hiện khi role = student) */}
+            {formData.role === 'student' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mã sinh viên
+                </label>
+                <Input
+                  type="text"
+                  value={formData.studentId || ''}
+                  onChange={(e) => setFormData({...formData, studentId: e.target.value.toUpperCase()})}
+                  placeholder="VD: SV001"
+                />
+              </div>
+            )}
+
+            {/* Trường mã giáo viên (chỉ hiện khi role = teacher) */}
+            {formData.role === 'teacher' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mã giáo viên
+                </label>
+                <Input
+                  type="text"
+                  value={formData.teacherId || ''}
+                  onChange={(e) => setFormData({...formData, teacherId: e.target.value.toUpperCase()})}
+                  placeholder="VD: GV001"
+                />
+              </div>
+            )}
+
+            {/* Trường lớp học (chỉ hiện khi role = student) */}
+            {formData.role === 'student' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Lớp học
+                </label>
+                <select
+                  value={formData.classId || ''}
+                  onChange={(e) => setFormData({...formData, classId: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Chọn lớp</option>
+                  {classes.map((classItem) => (
+                    <option key={classItem._id} value={classItem._id}>
+                      {classItem.classCode} - {classItem.className}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Nút submit và hủy */}
             <div className="flex gap-3 pt-4">
@@ -488,7 +619,16 @@ const Users = () => {
               </label>
               <select
                 value={formData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                onChange={(e) => {
+                  const newRole = e.target.value;
+                  setFormData({
+                    ...formData,
+                    role: newRole,
+                    studentId: newRole === 'student' ? formData.studentId : '',
+                    teacherId: newRole === 'teacher' ? formData.teacherId : '',
+                    classId: newRole === 'student' ? formData.classId : ''
+                  });
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="student">Học sinh</option>
@@ -496,6 +636,65 @@ const Users = () => {
                 <option value="admin">Quản trị viên</option>
               </select>
             </div>
+
+            {/* Trường mã sinh viên (chỉ hiện khi role = student) */}
+            {formData.role === 'student' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mã sinh viên <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="text"
+                  value={formData.studentId || ''}
+                  onChange={(e) => setFormData({...formData, studentId: e.target.value.toUpperCase()})}
+                  placeholder="VD: SV001"
+                  required
+                />
+                {!formData.studentId && (
+                  <p className="mt-1 text-xs text-gray-500">Mã sinh viên là bắt buộc</p>
+                )}
+              </div>
+            )}
+
+            {/* Trường mã giáo viên (chỉ hiện khi role = teacher) */}
+            {formData.role === 'teacher' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mã giáo viên <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="text"
+                  value={formData.teacherId || ''}
+                  onChange={(e) => setFormData({...formData, teacherId: e.target.value.toUpperCase()})}
+                  placeholder="VD: GV001"
+                  required
+                />
+                {!formData.teacherId && (
+                  <p className="mt-1 text-xs text-gray-500">Mã giáo viên là bắt buộc</p>
+                )}
+              </div>
+            )}
+
+            {/* Trường lớp học (chỉ hiện khi role = student) */}
+            {formData.role === 'student' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Lớp học
+                </label>
+                <select
+                  value={formData.classId}
+                  onChange={(e) => setFormData({...formData, classId: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Chọn lớp</option>
+                  {classes.map((classItem) => (
+                    <option key={classItem._id} value={classItem._id}>
+                      {classItem.classCode} - {classItem.className}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Nút submit và hủy */}
             <div className="flex gap-3 pt-4">
