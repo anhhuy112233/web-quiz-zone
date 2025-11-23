@@ -21,11 +21,9 @@ const Landing = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="text-2xl font-bold text-blue-600">
-              <Link to="/">
-                QuizZone
-              </Link>
+              <Link to="/">QuizZone</Link>
             </div>
-            
+
             {/* Navigation buttons */}
             <div className="flex items-center space-x-4">
               <Link
@@ -55,14 +53,14 @@ const Landing = () => {
               </span>
               Hiện Đại
             </h1>
-            
+
             {/* Subtitle */}
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               QuizZone - Giải pháp toàn diện cho việc tạo, quản lý và tham gia
               các bài thi trắc nghiệm trực tuyến. Dành cho giáo viên, học sinh
               và tổ chức giáo dục.
             </p>
-            
+
             {/* CTA buttons */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link to="/register">
@@ -97,7 +95,7 @@ const Landing = () => {
               </div>
               <div className="text-gray-600">Bài thi đã tạo</div>
             </div>
-            
+
             {/* Học sinh tham gia */}
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <div className="text-3xl font-bold text-green-600 mb-2">
@@ -105,7 +103,7 @@ const Landing = () => {
               </div>
               <div className="text-gray-600">Học sinh tham gia</div>
             </div>
-            
+
             {/* Uptime hệ thống */}
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <div className="text-3xl font-bold text-purple-600 mb-2">
@@ -277,7 +275,7 @@ const Landing = () => {
           <p className="text-xl text-blue-100 mb-8">
             Tham gia cùng hàng nghìn giáo viên và học sinh đang sử dụng QuizZone
           </p>
-          
+
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link to="/register">

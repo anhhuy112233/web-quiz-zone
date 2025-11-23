@@ -4,9 +4,9 @@
  */
 class SessionManager {
   constructor() {
-    this.currentSession = null;  // ID của session hiện tại
-    this.sessions = this.loadSessions();  // Load tất cả sessions từ localStorage
-    this.tabId = this.getTabId();  // Unique ID cho tab hiện tại
+    this.currentSession = null; // ID của session hiện tại
+    this.sessions = this.loadSessions(); // Load tất cả sessions từ localStorage
+    this.tabId = this.getTabId(); // Unique ID cho tab hiện tại
   }
 
   /**
@@ -14,10 +14,10 @@ class SessionManager {
    * @returns {String} Tab ID
    */
   getTabId() {
-    let tabId = sessionStorage.getItem('quizzone_tab_id');
+    let tabId = sessionStorage.getItem("quizzone_tab_id");
     if (!tabId) {
       tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      sessionStorage.setItem('quizzone_tab_id', tabId);
+      sessionStorage.setItem("quizzone_tab_id", tabId);
     }
     return tabId;
   }
@@ -36,10 +36,10 @@ class SessionManager {
    */
   loadSessions() {
     try {
-      const sessionsData = localStorage.getItem('quizzone_sessions');
+      const sessionsData = localStorage.getItem("quizzone_sessions");
       return sessionsData ? JSON.parse(sessionsData) : {};
     } catch (error) {
-      console.error('Error loading sessions:', error);
+      console.error("Error loading sessions:", error);
       return {};
     }
   }
@@ -49,9 +49,9 @@ class SessionManager {
    */
   saveSessions() {
     try {
-      localStorage.setItem('quizzone_sessions', JSON.stringify(this.sessions));
+      localStorage.setItem("quizzone_sessions", JSON.stringify(this.sessions));
     } catch (error) {
-      console.error('Error saving sessions:', error);
+      console.error("Error saving sessions:", error);
     }
   }
 
@@ -63,24 +63,24 @@ class SessionManager {
    */
   createSession(user, token) {
     // Xóa examState cũ khi tạo session mới để tránh xung đột
-    localStorage.removeItem('examState');
-    
+    localStorage.removeItem("examState");
+
     const sessionId = this.generateSessionId();
     const session = {
       id: sessionId,
       user: user,
       token: token,
-      createdAt: new Date().toISOString(),      // Thời gian tạo session
-      lastActive: new Date().toISOString()      // Thời gian hoạt động cuối
+      createdAt: new Date().toISOString(), // Thời gian tạo session
+      lastActive: new Date().toISOString(), // Thời gian hoạt động cuối
     };
 
     this.sessions[sessionId] = session;
     this.currentSession = sessionId;
     this.saveSessions();
-    
+
     // Lưu session hiện tại vào localStorage với tab-specific key
     localStorage.setItem(`quizzone_current_session_${this.tabId}`, sessionId);
-    
+
     return sessionId;
   }
 
@@ -91,7 +91,9 @@ class SessionManager {
   getCurrentSession() {
     if (!this.currentSession) {
       // Sử dụng tab-specific key để tránh xung đột giữa các tab
-      const sessionId = localStorage.getItem(`quizzone_current_session_${this.tabId}`);
+      const sessionId = localStorage.getItem(
+        `quizzone_current_session_${this.tabId}`
+      );
       if (sessionId && this.sessions[sessionId]) {
         this.currentSession = sessionId;
       }
@@ -139,8 +141,8 @@ class SessionManager {
   switchSession(sessionId) {
     if (this.sessions[sessionId]) {
       // Xóa examState cũ khi chuyển session để tránh xung đột
-      localStorage.removeItem('examState');
-      
+      localStorage.removeItem("examState");
+
       this.currentSession = sessionId;
       localStorage.setItem(`quizzone_current_session_${this.tabId}`, sessionId);
       this.sessions[sessionId].lastActive = new Date().toISOString();
@@ -173,8 +175,8 @@ class SessionManager {
    */
   logout() {
     // Xóa examState khi logout để tránh xung đột
-    localStorage.removeItem('examState');
-    
+    localStorage.removeItem("examState");
+
     if (this.currentSession) {
       this.removeSession(this.currentSession);
     }
@@ -186,7 +188,7 @@ class SessionManager {
   cleanupOnTabClose() {
     // Xóa tab-specific session khi tab đóng
     localStorage.removeItem(`quizzone_current_session_${this.tabId}`);
-    sessionStorage.removeItem('quizzone_tab_id');
+    sessionStorage.removeItem("quizzone_tab_id");
   }
 
   /**
@@ -203,7 +205,9 @@ class SessionManager {
    * @returns {Array} Array chứa sessions có role tương ứng
    */
   getSessionsByRole(role) {
-    return Object.values(this.sessions).filter(session => session.user.role === role);
+    return Object.values(this.sessions).filter(
+      (session) => session.user.role === role
+    );
   }
 
   /**
@@ -226,14 +230,15 @@ class SessionManager {
    * Dọn dẹp sessions cũ (có thể gọi định kỳ)
    * @param {Number} maxAge - Thời gian tối đa của session (milliseconds)
    */
-  cleanupOldSessions(maxAge = 24 * 60 * 60 * 1000) { // 24 giờ
+  cleanupOldSessions(maxAge = 24 * 60 * 60 * 1000) {
+    // 24 giờ
     const now = new Date();
     const sessionIds = Object.keys(this.sessions);
-    
-    sessionIds.forEach(sessionId => {
+
+    sessionIds.forEach((sessionId) => {
       const session = this.sessions[sessionId];
       const sessionAge = now - new Date(session.createdAt);
-      
+
       if (sessionAge > maxAge) {
         this.removeSession(sessionId);
       }
@@ -251,9 +256,9 @@ export default sessionManager;
  * Xóa tất cả sessions khỏi localStorage
  */
 export const clearAllSessions = () => {
-  localStorage.removeItem('quizzone_sessions');
-  localStorage.removeItem('quizzone_current_session');
-  console.log('All sessions cleared');
+  localStorage.removeItem("quizzone_sessions");
+  localStorage.removeItem("quizzone_current_session");
+  console.log("All sessions cleared");
 };
 
 /**
@@ -267,6 +272,6 @@ export const getCurrentSessionInfo = () => {
   return {
     currentSession,
     allSessions,
-    currentToken: sessionManager.getCurrentToken()
+    currentToken: sessionManager.getCurrentToken(),
   };
-}; 
+};

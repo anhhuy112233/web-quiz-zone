@@ -62,4 +62,4 @@ router.patch('/:id', restrictTo('admin'), updateUser);
 router.delete('/:id', restrictTo('admin', 'teacher'), deleteUser);
 
 // Export router để sử dụng trong app chính
-export default router; 
+export default router;  

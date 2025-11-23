@@ -62,7 +62,7 @@ const ExamResult = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   // Hiển thị loading nếu đang tải dữ liệu
   if (loading) {

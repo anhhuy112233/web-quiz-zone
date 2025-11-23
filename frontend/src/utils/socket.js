@@ -1,6 +1,6 @@
 // Import thư viện Socket.IO client và sessionManager
-import { io } from 'socket.io-client';
-import sessionManager from './sessionManager.js';
+import { io } from "socket.io-client";
+import sessionManager from "./sessionManager.js";
 
 /**
  * Class quản lý kết nối Socket.IO client
@@ -8,11 +8,11 @@ import sessionManager from './sessionManager.js';
  */
 class SocketClient {
   constructor() {
-    this.socket = null;                    // Socket instance
-    this.isConnected = false;              // Trạng thái kết nối
-    this.reconnectAttempts = 0;            // Số lần thử kết nối lại
-    this.maxReconnectAttempts = 5;         // Số lần thử tối đa
-    this.reconnectDelay = 1000;            // Thời gian delay giữa các lần thử (ms)
+    this.socket = null; // Socket instance
+    this.isConnected = false; // Trạng thái kết nối
+    this.reconnectAttempts = 0; // Số lần thử kết nối lại
+    this.maxReconnectAttempts = 5; // Số lần thử tối đa
+    this.reconnectDelay = 1000; // Thời gian delay giữa các lần thử (ms)
   }
 
   /**
@@ -25,41 +25,46 @@ class SocketClient {
     }
 
     const token = sessionManager.getCurrentToken();
-    console.log('Socket.IO - Current token:', token ? 'Token exists' : 'No token');
-    
+    console.log(
+      "Socket.IO - Current token:",
+      token ? "Token exists" : "No token"
+    );
+
     if (!token) {
-      console.warn('No authentication token available for Socket.IO connection');
+      console.warn(
+        "No authentication token available for Socket.IO connection"
+      );
       return null;
     }
 
     try {
       // Decode token để debug
-      const tokenParts = token.split('.');
+      const tokenParts = token.split(".");
       if (tokenParts.length === 3) {
         try {
           const payload = JSON.parse(atob(tokenParts[1]));
-          console.log('Socket.IO - Token payload:', payload);
+          console.log("Socket.IO - Token payload:", payload);
         } catch (e) {
-          console.log('Socket.IO - Could not decode token payload');
+          console.log("Socket.IO - Could not decode token payload");
         }
       }
 
       // Tạo kết nối Socket.IO với cấu hình
-      this.socket = io('http://localhost:5000', {
+      this.socket = io("http://localhost:5000", {
         auth: {
-          token: token  // Gửi token để xác thực
+          token: token, // Gửi token để xác thực
         },
-        transports: ['websocket', 'polling'],  // Ưu tiên websocket, fallback polling
-        reconnection: true,                     // Tự động kết nối lại
+        transports: ["websocket", "polling"], // Ưu tiên websocket, fallback polling
+        reconnection: true, // Tự động kết nối lại
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: this.reconnectDelay,
-        timeout: 20000  // Timeout 20 giây
+        timeout: 20000, // Timeout 20 giây
       });
 
       this.setupEventHandlers();
       return this.socket;
     } catch (error) {
-      console.error('Failed to connect to Socket.IO server:', error);
+      console.error("Failed to connect to Socket.IO server:", error);
       return null;
     }
   }
@@ -71,44 +76,48 @@ class SocketClient {
     if (!this.socket) return;
 
     // Xử lý khi kết nối thành công
-    this.socket.on('connect', () => {
-      console.log('Connected to Socket.IO server');
+    this.socket.on("connect", () => {
+      console.log("Connected to Socket.IO server");
       this.isConnected = true;
       this.reconnectAttempts = 0;
     });
 
     // Xử lý khi ngắt kết nối
-    this.socket.on('disconnect', (reason) => {
-      console.log('Disconnected from Socket.IO server:', reason);
+    this.socket.on("disconnect", (reason) => {
+      console.log("Disconnected from Socket.IO server:", reason);
       this.isConnected = false;
     });
 
     // Xử lý lỗi kết nối
-    this.socket.on('connect_error', (error) => {
-      console.error('Socket.IO connection error:', error);
+    this.socket.on("connect_error", (error) => {
+      console.error("Socket.IO connection error:", error);
       this.isConnected = false;
       this.reconnectAttempts++;
-      
+
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-        console.error('Max reconnection attempts reached');
+        console.error("Max reconnection attempts reached");
       }
     });
 
     // Xử lý khi kết nối lại thành công
-    this.socket.on('reconnect', (attemptNumber) => {
-      console.log('Reconnected to Socket.IO server after', attemptNumber, 'attempts');
+    this.socket.on("reconnect", (attemptNumber) => {
+      console.log(
+        "Reconnected to Socket.IO server after",
+        attemptNumber,
+        "attempts"
+      );
       this.isConnected = true;
       this.reconnectAttempts = 0;
     });
 
     // Xử lý lỗi khi kết nối lại
-    this.socket.on('reconnect_error', (error) => {
-      console.error('Socket.IO reconnection error:', error);
+    this.socket.on("reconnect_error", (error) => {
+      console.error("Socket.IO reconnection error:", error);
     });
 
     // Xử lý khi kết nối lại thất bại hoàn toàn
-    this.socket.on('reconnect_failed', () => {
-      console.error('Socket.IO reconnection failed');
+    this.socket.on("reconnect_failed", () => {
+      console.error("Socket.IO reconnection failed");
     });
   }
 
@@ -129,7 +138,7 @@ class SocketClient {
    */
   joinExam(examId) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('joinExam', examId);
+      this.socket.emit("joinExam", examId);
       console.log(`Joined exam room: ${examId}`);
     }
   }
@@ -140,7 +149,7 @@ class SocketClient {
    */
   leaveExam(examId) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('leaveExam', examId);
+      this.socket.emit("leaveExam", examId);
       console.log(`Left exam room: ${examId}`);
     }
   }
@@ -152,9 +161,9 @@ class SocketClient {
    */
   examStarted(examId, startTime) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('examStarted', {
+      this.socket.emit("examStarted", {
         examId: examId,
-        startTime: startTime
+        startTime: startTime,
       });
     }
   }
@@ -168,11 +177,11 @@ class SocketClient {
    */
   submitAnswer(examId, questionId, answer, timeSpent) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('submitAnswer', {
+      this.socket.emit("submitAnswer", {
         examId: examId,
         questionId: questionId,
         answer: answer,
-        timeSpent: timeSpent
+        timeSpent: timeSpent,
       });
     }
   }
@@ -186,11 +195,11 @@ class SocketClient {
    */
   examCompleted(examId, score, totalQuestions, timeTaken) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('examCompleted', {
+      this.socket.emit("examCompleted", {
         examId: examId,
         score: score,
         totalQuestions: totalQuestions,
-        timeTaken: timeTaken
+        timeTaken: timeTaken,
       });
     }
   }
@@ -202,9 +211,9 @@ class SocketClient {
    */
   timeUpdate(examId, remainingTime) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('timeUpdate', {
+      this.socket.emit("timeUpdate", {
         examId: examId,
-        remainingTime: remainingTime
+        remainingTime: remainingTime,
       });
     }
   }
@@ -217,10 +226,10 @@ class SocketClient {
    */
   suspiciousActivity(examId, activity, details) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('suspiciousActivity', {
+      this.socket.emit("suspiciousActivity", {
         examId: examId,
         activity: activity,
-        details: details
+        details: details,
       });
     }
   }
@@ -231,7 +240,7 @@ class SocketClient {
    */
   startMonitoring(examId) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('startMonitoring', examId);
+      this.socket.emit("startMonitoring", examId);
     }
   }
 
@@ -274,4 +283,4 @@ class SocketClient {
 // Tạo instance singleton
 const socketClient = new SocketClient();
 
-export default socketClient; 
+export default socketClient;
