@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import socketClient from "../../utils/socket.js";
 
 /**
@@ -12,6 +13,12 @@ import socketClient from "../../utils/socket.js";
  * @returns {JSX.Element|null} Component thông báo hoặc null nếu không có thông báo
  */
 const RealTimeNotification = () => {
+  const location = useLocation();
+  
+  // Ẩn notification khi đang ở trang Monitor (vì Monitor có activities panel riêng)
+  if (location.pathname.includes('/monitor')) {
+    return null;
+  }
   // State quản lý danh sách thông báo và trạng thái hiển thị
   const [notifications, setNotifications] = useState([]);
   const [isVisible, setIsVisible] = useState(false);

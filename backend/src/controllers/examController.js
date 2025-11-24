@@ -12,10 +12,23 @@ import XLSX from "xlsx"; // Thư viện xử lý file Excel
  */
 export const createExam = async (req, res) => {
   try {
+    // Chuẩn bị dữ liệu, loại bỏ classId rỗng nếu có
+    const examData = { ...req.body };
+    
+    // Loại bỏ classId nếu nó là string rỗng hoặc null
+    if (examData.classId === '' || examData.classId === null || examData.classId === undefined) {
+      delete examData.classId;
+    }
+    
+    // Đảm bảo classIds là array hợp lệ
+    if (examData.classIds && (!Array.isArray(examData.classIds) || examData.classIds.length === 0)) {
+      delete examData.classIds;
+    }
+    
     // Tạo bài thi mới với thông tin từ request body
     // Tự động gán createdBy là user hiện tại
     const exam = await Exam.create({
-      ...req.body,
+      ...examData,
       createdBy: req.user._id || req.user.id,
     });
 
@@ -70,7 +83,11 @@ export const getAllExams = async (req, res) => {
         });
       }
       
-      query.classId = user.classId; // Chỉ bài thi của lớp mình
+      // Tìm bài thi có classIds chứa classId của student hoặc classId cũ (tương thích ngược)
+      query.$or = [
+        { classIds: { $in: [user.classId] } },  // Bài thi có classIds chứa lớp của student
+        { classId: user.classId }                // Bài thi có classId cũ (tương thích ngược)
+      ];
       query.isPublic = true; // Chỉ bài thi public
     }
 
@@ -85,7 +102,8 @@ export const getAllExams = async (req, res) => {
     // Tìm bài thi theo query, populate thông tin người tạo và lớp
     const exams = await Exam.find(query)
       .populate("createdBy", "name email teacherId") // Lấy thông tin người tạo
-      .populate("classId", "classCode className") // Lấy thông tin lớp
+      .populate("classIds", "classCode className")  // Lấy thông tin danh sách lớp
+      .populate("classId", "classCode className")  // Lấy thông tin lớp cũ (tương thích ngược)
       .sort("-createdAt"); // Sắp xếp theo thời gian tạo mới nhất
 
     // Trả về response với danh sách bài thi
@@ -113,6 +131,7 @@ export const getExam = async (req, res) => {
     // Tìm bài thi theo ID và populate thông tin người tạo và lớp
     const exam = await Exam.findById(req.params.id)
       .populate("createdBy", "name email teacherId")
+      .populate("classIds", "classCode className")
       .populate("classId", "classCode className");
 
     // Kiểm tra bài thi có tồn tại không
@@ -137,7 +156,13 @@ export const getExam = async (req, res) => {
       }
 
       // Kiểm tra bài thi có phải của lớp mình không
-      if (exam.classId && exam.classId.toString() !== user.classId.toString()) {
+      // Kiểm tra cả classIds (mới) và classId (cũ - tương thích ngược)
+      const isInClassIds = exam.classIds && exam.classIds.length > 0 
+        ? exam.classIds.some(id => id.toString() === user.classId.toString())
+        : false;
+      const isInClassId = exam.classId && exam.classId.toString() === user.classId.toString();
+      
+      if (!isInClassIds && !isInClassId) {
         return res.status(403).json({
           status: "error",
           message: "Bạn không có quyền xem đề thi của lớp khác.",
@@ -156,7 +181,13 @@ export const getExam = async (req, res) => {
     // Nếu user là teacher
     if (req.user.role === "teacher") {
       // Chỉ cho phép xem bài thi do mình tạo
-      if (exam.createdBy.toString() !== (req.user._id || req.user.id).toString()) {
+      // Xử lý cả trường hợp createdBy là ObjectId hoặc object đã populate
+      const createdById = exam.createdBy._id 
+        ? exam.createdBy._id.toString() 
+        : exam.createdBy.toString();
+      const userId = (req.user._id || req.user.id).toString();
+      
+      if (createdById !== userId) {
         return res.status(403).json({
           status: "error",
           message: "Bạn không có quyền xem đề thi của giáo viên khác.",
@@ -199,10 +230,13 @@ export const updateExam = async (req, res) => {
     }
 
     // Kiểm tra quyền cập nhật: chỉ người tạo hoặc admin
-    if (
-      exam.createdBy.toString() !== (req.user._id || req.user.id).toString() &&
-      req.user.role !== "admin"
-    ) {
+    // Xử lý cả trường hợp createdBy là ObjectId (chưa populate)
+    const createdById = exam.createdBy._id 
+      ? exam.createdBy._id.toString() 
+      : exam.createdBy.toString();
+    const userId = (req.user._id || req.user.id).toString();
+    
+    if (createdById !== userId && req.user.role !== "admin") {
       return res.status(403).json({
         status: "error",
         message: "Bạn không có quyền cập nhật bài thi này.",
@@ -256,10 +290,13 @@ export const deleteExam = async (req, res) => {
     }
 
     // Kiểm tra quyền xóa: chỉ người tạo hoặc admin
-    if (
-      exam.createdBy.toString() !== (req.user._id || req.user.id).toString() &&
-      req.user.role !== "admin"
-    ) {
+    // Xử lý cả trường hợp createdBy là ObjectId (chưa populate)
+    const createdById = exam.createdBy._id 
+      ? exam.createdBy._id.toString() 
+      : exam.createdBy.toString();
+    const userId = (req.user._id || req.user.id).toString();
+    
+    if (createdById !== userId && req.user.role !== "admin") {
       return res.status(403).json({
         status: "error",
         message: "Bạn không có quyền xóa bài thi này.",
@@ -321,7 +358,13 @@ export const startExam = async (req, res) => {
     }
 
     // Kiểm tra bài thi có phải của lớp mình không
-    if (exam.classId && exam.classId.toString() !== user.classId.toString()) {
+    // Kiểm tra cả classIds (mới) và classId (cũ - tương thích ngược)
+    const isInClassIds = exam.classIds && exam.classIds.length > 0 
+      ? exam.classIds.some(id => id.toString() === user.classId.toString())
+      : false;
+    const isInClassId = exam.classId && exam.classId.toString() === user.classId.toString();
+    
+    if (!isInClassIds && !isInClassId) {
       return res.status(403).json({
         status: "error",
         message: "Bạn không có quyền làm bài thi của lớp khác.",
@@ -358,6 +401,23 @@ export const startExam = async (req, res) => {
         status: "error",
         message: "Bài thi đã kết thúc.",
       });
+    }
+
+    // Kiểm tra nếu bài thi chỉ cho phép thi một lần
+    if (!exam.allowMultipleAttempts) {
+      // Tìm xem đã có kết quả hoàn thành chưa
+      const existingResult = await Result.findOne({
+        exam: exam._id,
+        user: req.user._id || req.user.id,
+        status: { $in: ['completed', 'timeout'] }  // Đã hoàn thành hoặc hết thời gian
+      });
+
+      if (existingResult) {
+        return res.status(403).json({
+          status: "error",
+          message: "Bạn đã hoàn thành bài thi này. Bài thi này chỉ cho phép làm một lần duy nhất.",
+        });
+      }
     }
 
     // Xóa các result in_progress cũ trước khi tạo mới

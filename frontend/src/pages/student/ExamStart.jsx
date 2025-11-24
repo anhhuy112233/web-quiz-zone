@@ -193,6 +193,15 @@ const ExamStart = () => {
       });
       const data = await response.json();
       if (!response.ok) {
+        // Nếu đã hoàn thành bài thi (thi một lần duy nhất), hiển thị thông báo và chuyển hướng
+        if (data.message && data.message.includes('đã hoàn thành bài thi này')) {
+          setError(data.message);
+          // Chuyển hướng sau 3 giây
+          setTimeout(() => {
+            navigate(`/student/exams/${id}/result`);
+          }, 3000);
+          return;
+        }
         // Nếu đã bắt đầu bài thi, chuyển hướng sang trang kết quả và hiển thị nút Làm lại
         if (data.message && (data.message.includes('bắt đầu bài thi này') || data.message.includes('chưa hoàn thành'))) {
           navigate(`/student/exams/${id}/result?retry=1`);

@@ -66,8 +66,15 @@ const examSchema = new mongoose.Schema({
     required: true
   },
   
-  // Mã lớp (liên kết với Class)
-  // Nếu có classId, chỉ sinh viên trong lớp đó mới thấy
+  // Danh sách mã lớp (liên kết với Class)
+  // Một đề thi có thể được gán cho nhiều lớp
+  // Nếu có classIds, chỉ sinh viên trong các lớp đó mới thấy
+  classIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Class'
+  }],
+  
+  // Giữ lại classId để tương thích ngược (deprecated, sẽ xóa sau)
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Class',
@@ -89,6 +96,14 @@ const examSchema = new mongoose.Schema({
     default: false
   },
   
+  // Cho phép thi nhiều lần hay chỉ thi một lần
+  // Nếu allowMultipleAttempts = true: sinh viên có thể thi lại nhiều lần
+  // Nếu allowMultipleAttempts = false: mỗi sinh viên chỉ được thi 1 lần duy nhất
+  allowMultipleAttempts: {
+    type: Boolean,
+    default: true  // Mặc định cho phép thi nhiều lần
+  },
+  
   // Danh sách người tham gia
   participants: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -102,9 +117,10 @@ const examSchema = new mongoose.Schema({
 examSchema.index({ startTime: 1, endTime: 1 });  // Index cho thời gian thi
 examSchema.index({ status: 1 });                 // Index cho trạng thái
 examSchema.index({ createdBy: 1 });              // Index cho người tạo
-examSchema.index({ classId: 1 });                // Index cho lớp
-examSchema.index({ classId: 1, isPublic: 1 });   // Index cho lớp và trạng thái public
-examSchema.index({ createdBy: 1, classId: 1 });  // Index cho người tạo và lớp
+examSchema.index({ classIds: 1 });               // Index cho danh sách lớp
+examSchema.index({ classId: 1 });                // Index cho lớp (tương thích ngược)
+examSchema.index({ classIds: 1, isPublic: 1 }); // Index cho danh sách lớp và trạng thái public
+examSchema.index({ createdBy: 1, classIds: 1 }); // Index cho người tạo và danh sách lớp
 
 // Tạo model Exam từ schema
 const Exam = mongoose.model('Exam', examSchema);

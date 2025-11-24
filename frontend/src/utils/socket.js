@@ -137,9 +137,11 @@ class SocketClient {
    * @param {String} examId - ID của bài thi
    */
   joinExam(examId) {
-    if (this.socket && this.isConnected) {
+    if (this.socket && this.socket.connected) {
       this.socket.emit("joinExam", examId);
-      console.log(`Joined exam room: ${examId}`);
+      console.log(`[SOCKET] Joined exam room: ${examId}`);
+    } else {
+      console.warn(`[SOCKET] Cannot join exam room - socket not connected. Socket: ${!!this.socket}, Connected: ${this.socket?.connected}`);
     }
   }
 
@@ -239,8 +241,11 @@ class SocketClient {
    * @param {String} examId - ID của bài thi
    */
   startMonitoring(examId) {
-    if (this.socket && this.isConnected) {
+    if (this.socket && this.socket.connected) {
       this.socket.emit("startMonitoring", examId);
+      console.log(`[SOCKET] Started monitoring exam: ${examId}`);
+    } else {
+      console.warn(`[SOCKET] Cannot start monitoring - socket not connected`);
     }
   }
 

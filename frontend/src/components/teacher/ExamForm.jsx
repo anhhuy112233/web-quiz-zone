@@ -29,7 +29,9 @@ const ExamForm = ({ exam, onSubmit }) => {
     startTime: exam?.startTime ? new Date(exam.startTime).toISOString().slice(0, 16) : '', // Thời gian bắt đầu
     endTime: exam?.endTime ? new Date(exam.endTime).toISOString().slice(0, 16) : '',       // Thời gian kết thúc
     isPublic: exam?.isPublic || false,          // Có công khai không
-    classId: exam?.classId?._id || exam?.classId || ''  // Mã lớp
+    classIds: exam?.classIds ? exam.classIds.map(c => c._id || c) : (exam?.classId ? [exam.classId._id || exam.classId] : []),  // Danh sách mã lớp (mới)
+    classId: exam?.classId?._id || exam?.classId || '',  // Mã lớp (cũ - tương thích ngược)
+    allowMultipleAttempts: exam?.allowMultipleAttempts !== undefined ? exam.allowMultipleAttempts : true  // Cho phép thi nhiều lần (mặc định: true)
   });
   
   // State quản lý danh sách câu hỏi
@@ -167,12 +169,27 @@ const ExamForm = ({ exam, onSubmit }) => {
 
       // ==================== SUBMIT ====================
       
-      // Gọi callback submit với dữ liệu đã validate
-      await onSubmit({
-        ...formData,
+      // Chuẩn bị dữ liệu submit, loại bỏ các field không cần thiết
+      const submitData = {
+        title: formData.title,
+        description: formData.description,
+        duration: formData.duration,
+        totalQuestions: formData.totalQuestions,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        isPublic: formData.isPublic,
+        allowMultipleAttempts: formData.allowMultipleAttempts,
         questions,
         status: 'scheduled',  // Mặc định là scheduled
-      });
+      };
+      
+      // Chỉ thêm classIds nếu có lớp được chọn
+      if (formData.classIds && formData.classIds.length > 0) {
+        submitData.classIds = formData.classIds;
+      }
+      
+      // Gọi callback submit với dữ liệu đã validate
+      await onSubmit(submitData);
 
       // Chuyển về trang danh sách đề thi
       navigate('/teacher/exams');
@@ -252,27 +269,62 @@ const ExamForm = ({ exam, onSubmit }) => {
           />
         </div>
 
-        {/* Chọn lớp học */}
+        {/* Chọn lớp học (nhiều lớp) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Lớp học
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Chọn lớp học
           </label>
-          <select
-            name="classId"
-            value={formData.classId}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Chọn lớp (để trống nếu không áp dụng)</option>
-            {classes.map((classItem) => (
-              <option key={classItem._id} value={classItem._id}>
-                {classItem.classCode} - {classItem.className}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-gray-500">
-            Chọn lớp để chỉ sinh viên trong lớp đó mới thấy và làm bài thi này
+          <p className="text-xs text-gray-500 mb-3">
+            Có thể chọn nhiều lớp để đề thi này áp dụng cho tất cả các lớp được chọn
           </p>
+          <div className="border border-gray-300 rounded-md p-3 max-h-60 overflow-y-auto bg-gray-50">
+            {classes.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">
+                Chưa có lớp học nào. Vui lòng tạo lớp học trước.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {classes.map((classItem) => {
+                  const isSelected = formData.classIds.includes(classItem._id);
+                  return (
+                    <label
+                      key={classItem._id}
+                      className="flex items-center p-2 rounded hover:bg-gray-100 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            // Thêm lớp vào danh sách
+                            setFormData(prev => ({
+                              ...prev,
+                              classIds: [...prev.classIds, classItem._id]
+                            }));
+                          } else {
+                            // Xóa lớp khỏi danh sách
+                            setFormData(prev => ({
+                              ...prev,
+                              classIds: prev.classIds.filter(id => id !== classItem._id)
+                            }));
+                          }
+                        }}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        <span className="font-medium">{classItem.classCode}</span> - {classItem.className}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          {formData.classIds.length > 0 && (
+            <p className="mt-2 text-xs text-green-600">
+              ✓ Đã chọn {formData.classIds.length} lớp học
+            </p>
+          )}
         </div>
 
         {/* Checkbox công khai */}
@@ -287,6 +339,47 @@ const ExamForm = ({ exam, onSubmit }) => {
           <label className="ml-2 text-sm text-gray-600">
             Công khai bài thi (sinh viên trong lớp có thể thấy và làm bài)
           </label>
+        </div>
+
+        {/* Chọn loại thi */}
+        <div className="border-t border-gray-200 pt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Loại thi
+          </label>
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <input
+                type="radio"
+                name="allowMultipleAttempts"
+                value="true"
+                checked={formData.allowMultipleAttempts === true}
+                onChange={() => setFormData(prev => ({ ...prev, allowMultipleAttempts: true }))}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <label className="ml-2 text-sm text-gray-700">
+                <span className="font-medium">Cho phép thi lại nhiều lần</span>
+                <span className="block text-xs text-gray-500 mt-0.5">
+                  Sinh viên có thể làm bài thi này nhiều lần
+                </span>
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="radio"
+                name="allowMultipleAttempts"
+                value="false"
+                checked={formData.allowMultipleAttempts === false}
+                onChange={() => setFormData(prev => ({ ...prev, allowMultipleAttempts: false }))}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <label className="ml-2 text-sm text-gray-700">
+                <span className="font-medium">Thi một lần duy nhất</span>
+                <span className="block text-xs text-gray-500 mt-0.5">
+                  Mỗi sinh viên chỉ được làm bài thi này một lần
+                </span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 

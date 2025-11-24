@@ -2,11 +2,12 @@
 import express from 'express';
 // Import các controller xử lý logic kết quả bài thi
 import {
-  getResults,      // Lấy danh sách kết quả
-  getResult,       // Lấy thông tin chi tiết một kết quả
-  getExamResults,  // Lấy kết quả của một đề thi cụ thể
-  getUserResults,  // Lấy kết quả của một user cụ thể
-  deleteResult     // Xóa kết quả
+  getResults,            // Lấy danh sách kết quả
+  getResult,             // Lấy thông tin chi tiết một kết quả
+  getExamResults,        // Lấy kết quả của một đề thi cụ thể
+  getActiveExamStudents, // Lấy danh sách học sinh đang thi (cho giám sát)
+  getUserResults,        // Lấy kết quả của một user cụ thể
+  deleteResult           // Xóa kết quả
 } from '../controllers/resultController.js';
 // Import middleware xác thực và phân quyền
 import { protect, restrictTo } from '../middleware/auth.js';
@@ -33,6 +34,9 @@ router.get('/:id', getResult);
 /**
  * Routes chỉ dành cho giáo viên và admin
  */
+
+// Lấy danh sách học sinh đang thi (cho giám sát real-time)
+router.get('/exam/:examId/active', restrictTo('teacher', 'admin'), getActiveExamStudents);
 
 // Lấy tất cả kết quả của một đề thi cụ thể
 router.get('/exam/:examId', restrictTo('teacher', 'admin'), getExamResults);

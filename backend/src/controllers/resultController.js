@@ -92,6 +92,55 @@ export const getResult = async (req, res) => {
 };
 
 /**
+ * Lấy danh sách học sinh đang thi (cho giám sát real-time)
+ * GET /api/results/exam/:examId/active
+ * Chỉ teacher và admin mới có quyền xem
+ */
+export const getActiveExamStudents = async (req, res) => {
+  try {
+    const { examId } = req.params;
+    
+    // CHỈ lấy học sinh đang trong quá trình thi (in_progress), KHÔNG lấy completed
+    // Vì học sinh đã completed và thoát phòng thi không cần hiển thị nữa
+    const results = await Result.find({ 
+      exam: examId,
+      status: 'in_progress'  // Chỉ lấy những học sinh đang thi, không lấy đã hoàn thành
+    })
+      .populate('user', 'name email studentId')  // Lấy thông tin user (chỉ name, email, studentId)
+      .select('user startTime endTime status score totalQuestions correctAnswers')
+      .sort('-startTime')
+      .lean();
+
+    // Chuyển đổi dữ liệu để frontend dễ sử dụng
+    const activeStudents = results.map(result => ({
+      id: result.user._id.toString(),
+      name: result.user.name,
+      email: result.user.email,
+      studentId: result.user.studentId,
+      startTime: result.startTime,
+      endTime: result.endTime,
+      status: result.status,
+      score: result.score || 0,
+      totalQuestions: result.totalQuestions || 0,
+      correctAnswers: result.correctAnswers || 0,
+      examStarted: true,  // Nếu có trong database với status in_progress thì đã bắt đầu
+      examCompleted: false  // Chỉ lấy in_progress nên chưa completed
+    }));
+
+    res.status(200).json({
+      status: 'success',
+      results: activeStudents.length,
+      data: { students: activeStudents }
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+};
+
+/**
  * Lấy kết quả của một bài thi cụ thể
  * GET /api/results/exam/:examId
  * Chỉ teacher và admin mới có quyền xem

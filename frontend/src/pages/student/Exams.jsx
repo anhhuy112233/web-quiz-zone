@@ -93,6 +93,18 @@ const StudentExams = () => {
                   Thời gian: {formatDate(exam.startTime)} - {formatDate(exam.endTime)}
                 </div>
                 <div className="text-gray-500 text-xs">Số câu hỏi: {exam.totalQuestions}</div>
+                {/* Hiển thị loại thi */}
+                <div className="text-xs mt-1">
+                  {exam.allowMultipleAttempts ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      ✓ Cho phép thi lại
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      ⚠ Thi một lần duy nhất
+                    </span>
+                  )}
+                </div>
               </div>
               
               {/* Nút thao tác */}

@@ -40,7 +40,7 @@ const Profile = () => {
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`, {
         headers: getAuthHeaders()
       });
       
@@ -122,116 +122,193 @@ const Profile = () => {
   }
 
   return (
-    <div className="max-w-xl mx-auto py-8 px-4">
-      {/* ==================== HEADER ==================== */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Thông tin cá nhân</h1>
-        <div className="flex gap-3">
-          {/* Nút chỉnh sửa thông tin */}
-          <Button
-            onClick={() => setShowEditForm(true)}
-          >
-            ✏️ Chỉnh sửa thông tin
-          </Button>
-          {/* Nút đổi mật khẩu */}
-          <Button
-            variant="outline"
-            onClick={() => setShowPasswordForm(true)}
-          >
-            🔒 Đổi mật khẩu
-          </Button>
-          {/* Nút quay về trang chủ */}
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/student/dashboard')}
-          >
-            Quay về trang chủ
-          </Button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* ==================== HEADER ==================== */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                Thông tin cá nhân
+              </h1>
+              <p className="mt-2 text-sm sm:text-base text-gray-600">
+                Xem và quản lý thông tin tài khoản của bạn
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={() => navigate('/student/dashboard')}
+              className="w-full sm:w-auto"
+            >
+              ← Quay về trang chủ
+            </Button>
+          </div>
         </div>
+
+        {/* Hiển thị lỗi và thông báo thành công */}
+        {error && (
+          <div className="mb-4">
+            <Alert type="error" message={error} onClose={() => setError('')} />
+          </div>
+        )}
+        
+        {successMessage && (
+          <div className="mb-4">
+            <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* ==================== PROFILE INFORMATION CARD ==================== */}
+          <div className="lg:col-span-2">
+            <Card title="📋 Thông tin cá nhân">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                {/* Họ và tên */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-500 mb-1.5">Họ và tên</label>
+                  <div className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm sm:text-base">
+                    {user?.name || 'N/A'}
+                  </div>
+                </div>
+                
+                {/* Email */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-500 mb-1.5">Email</label>
+                  <div className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm sm:text-base break-all">
+                    {user?.email || 'N/A'}
+                  </div>
+                </div>
+                
+                {/* Mã sinh viên */}
+                {user?.studentId && (
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-500 mb-1.5">Mã sinh viên</label>
+                    <div className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm sm:text-base font-mono">
+                      {user.studentId}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Vai trò */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-500 mb-1.5">Vai trò</label>
+                  <div className="px-3 py-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {getRoleDisplayName(user?.role)}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Ngày tham gia */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-500 mb-1.5">Ngày tham gia</label>
+                  <div className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm sm:text-base">
+                    {formatDate(user?.createdAt)}
+                  </div>
+                </div>
+                
+                {/* Đăng nhập lần cuối */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-500 mb-1.5">Đăng nhập lần cuối</label>
+                  <div className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm sm:text-base">
+                    {formatDate(user?.lastLogin)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Thống kê dành riêng cho học sinh */}
+              {user?.role === 'student' && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4">Thống kê học tập</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                      <div className="text-xs sm:text-sm text-blue-600 font-medium mb-1">Số bài thi đã hoàn thành</div>
+                      <div className="text-xl sm:text-2xl font-bold text-blue-900">{user?.completedExams || 0}</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                      <div className="text-xs sm:text-sm text-green-600 font-medium mb-1">Điểm trung bình</div>
+                      <div className="text-xl sm:text-2xl font-bold text-green-900">{user?.averageScore || 0}/100</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Các nút thao tác */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    onClick={() => setShowEditForm(true)}
+                    className="flex-1"
+                  >
+                    ✏️ Chỉnh sửa thông tin
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPasswordForm(true)}
+                    className="flex-1"
+                  >
+                    🔒 Đổi mật khẩu
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* ==================== SIDEBAR ACTIONS ==================== */}
+          <div className="space-y-4">
+            <Card title="Thao tác nhanh">
+              <div className="space-y-3">
+                <Button
+                  onClick={() => setShowEditForm(true)}
+                  className="w-full justify-center"
+                  variant="primary"
+                >
+                  ✏️ Chỉnh sửa
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPasswordForm(true)}
+                  className="w-full justify-center"
+                >
+                  🔒 Đổi mật khẩu
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => navigate('/student/dashboard')}
+                  className="w-full justify-center"
+                >
+                  ← Trang chủ
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* ==================== EDIT PROFILE MODAL ==================== */}
+        <Modal
+          isOpen={showEditForm}
+          onClose={() => setShowEditForm(false)}
+          title="Chỉnh sửa thông tin cá nhân"
+        >
+          <ProfileForm
+            user={user}
+            onUpdate={handleProfileUpdate}
+            onCancel={() => setShowEditForm(false)}
+          />
+        </Modal>
+
+        {/* ==================== CHANGE PASSWORD MODAL ==================== */}
+        <Modal
+          isOpen={showPasswordForm}
+          onClose={() => setShowPasswordForm(false)}
+          title="Đổi mật khẩu"
+        >
+          <ChangePasswordForm
+            onSuccess={handlePasswordChange}
+            onCancel={() => setShowPasswordForm(false)}
+          />
+        </Modal>
       </div>
-      
-      {/* Hiển thị lỗi và thông báo thành công */}
-      {error && (
-        <Alert type="error" message={error} onClose={() => setError('')} />
-      )}
-      
-      {successMessage && (
-        <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />
-      )}
-      
-      {/* ==================== PROFILE INFORMATION CARD ==================== */}
-      <Card title="📋 Thông tin cá nhân">
-        <div className="space-y-4">
-          {/* Họ và tên */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
-            <div className="px-3 py-2 bg-gray-100 rounded-md text-gray-700">{user?.name || 'N/A'}</div>
-          </div>
-          
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <div className="px-3 py-2 bg-gray-100 rounded-md text-gray-700">{user?.email || 'N/A'}</div>
-          </div>
-          
-          {/* Vai trò */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Vai trò</label>
-            <div className="px-3 py-2 bg-gray-100 rounded-md text-gray-700">{getRoleDisplayName(user?.role)}</div>
-          </div>
-          
-          {/* Ngày tham gia */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ngày tham gia</label>
-            <div className="px-3 py-2 bg-gray-100 rounded-md text-gray-700">{formatDate(user?.createdAt)}</div>
-          </div>
-          
-          {/* Đăng nhập lần cuối */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Đăng nhập lần cuối</label>
-            <div className="px-3 py-2 bg-gray-100 rounded-md text-gray-700">{formatDate(user?.lastLogin)}</div>
-          </div>
-          
-          {/* Thống kê dành riêng cho học sinh */}
-          {user?.role === 'student' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Số bài thi đã hoàn thành</label>
-                <div className="px-3 py-2 bg-gray-100 rounded-md text-gray-700">{user?.completedExams || 0}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Điểm trung bình</label>
-                <div className="px-3 py-2 bg-gray-100 rounded-md text-gray-700">{user?.averageScore || 0}/100</div>
-              </div>
-            </>
-          )}
-        </div>
-      </Card>
-
-      {/* ==================== EDIT PROFILE MODAL ==================== */}
-      <Modal
-        isOpen={showEditForm}
-        onClose={() => setShowEditForm(false)}
-        title="Chỉnh sửa thông tin cá nhân"
-      >
-        <ProfileForm
-          user={user}
-          onUpdate={handleProfileUpdate}
-          onCancel={() => setShowEditForm(false)}
-        />
-      </Modal>
-
-      {/* ==================== CHANGE PASSWORD MODAL ==================== */}
-      <Modal
-        isOpen={showPasswordForm}
-        onClose={() => setShowPasswordForm(false)}
-        title="Đổi mật khẩu"
-      >
-        <ChangePasswordForm
-          onSuccess={handlePasswordChange}
-          onCancel={() => setShowPasswordForm(false)}
-        />
-      </Modal>
     </div>
   );
 };
